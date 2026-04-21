@@ -37,8 +37,6 @@ Niguada incluye:
 
 ## Capturas
 
-Sustituye estas imagenes por screenshots reales cuando publiques el repositorio.
-
 ![Login placeholder](docs/screenshots/login-placeholder.svg)
 ![Dashboard placeholder](docs/screenshots/dashboard-placeholder.svg)
 ![CRM placeholder](docs/screenshots/crm-placeholder.svg)
@@ -286,15 +284,6 @@ Decisiones:
 - tests E2E con Playwright
 - linting y formatting automatizados
 - pipeline CI para build y checks
-
-## Proyecto listo para portfolio
-
-Niguada esta pensado para enseñar en entrevistas:
-
-- capacidad de disenar arquitectura full stack
-- criterio de modelado de datos
-- experiencia construyendo dashboards y CRUDs reales
-- cuidado por DX, UX y documentacion
 
 ## Documentacion adicional
 
