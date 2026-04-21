@@ -4,8 +4,10 @@ import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import { EmptyState } from "../components/ui/EmptyState";
 import { Input } from "../components/ui/Input";
+import { MetricCard } from "../components/ui/MetricCard";
 import { Modal } from "../components/ui/Modal";
 import { Pagination } from "../components/ui/Pagination";
+import { PageHeader } from "../components/ui/PageHeader";
 import { Select } from "../components/ui/Select";
 import { Spinner } from "../components/ui/Spinner";
 import { StatusBadge } from "../components/ui/StatusBadge";
@@ -13,6 +15,7 @@ import { Table } from "../components/ui/Table";
 import { ClientForm, ClientFormValues } from "../features/clients/components/ClientForm";
 import { clientsApi } from "../features/clients/api";
 import { ApiError } from "../lib/api/client";
+import { clientToneMap } from "../lib/constants/status";
 import { emptyToUndefined } from "../lib/utils/forms";
 import { formatCurrency } from "../lib/utils/format";
 import { Client } from "../types/domain";
@@ -33,12 +36,14 @@ export const ClientsPage = () => {
     try {
       setLoading(true);
       setError(null);
+
       const result = await clientsApi.list({
         page,
         pageSize: 8,
         search,
         status: status || undefined
       });
+
       setItems(result.items);
       setPageCount(result.meta?.pageCount ?? 1);
     } catch (error) {
@@ -96,7 +101,7 @@ export const ClientsPage = () => {
       {
         key: "status",
         header: "Estado",
-        render: (item: Client) => <StatusBadge tone={mapClientTone(item.status)} label={item.status} />
+        render: (item: Client) => <StatusBadge tone={clientToneMap[item.status]} label={item.status} />
       },
       {
         key: "revenue",
@@ -127,23 +132,40 @@ export const ClientsPage = () => {
     []
   );
 
+  const metrics = useMemo(() => {
+    const activeClients = items.filter((item) => item.status === "ACTIVE").length;
+    const leads = items.filter((item) => item.status === "LEAD").length;
+    const portfolioRevenue = items.reduce((total, item) => total + Number(item.annualRevenue ?? 0), 0);
+
+    return [
+      { label: "Clientes visibles", value: String(items.length), hint: "Segmento cargado en esta pagina" },
+      { label: "Clientes activos", value: String(activeClients), hint: "Cuentas en relacion activa" },
+      { label: "Revenue visible", value: formatCurrency(portfolioRevenue), hint: `${leads} leads en seguimiento` }
+    ];
+  }, [items]);
+
   return (
     <div className="space-y-6">
-      <div className="page-header">
-        <div>
-          <p className="text-xs uppercase tracking-[0.35em] text-accent-600">Clientes</p>
-          <h1 className="mt-2 font-display text-4xl font-bold text-slate-900">
-            Relaciones comerciales bien organizadas
-          </h1>
-        </div>
-        <Button
-          onClick={() => {
-            setSelectedClient(null);
-            setModalOpen(true);
-          }}
-        >
-          Nuevo cliente
-        </Button>
+      <PageHeader
+        eyebrow="Clientes"
+        title="Relaciones comerciales bien organizadas"
+        description="Busqueda, filtros y edicion rapida para una vista de cuentas mas cercana a producto real que a una demo generica."
+        action={
+          <Button
+            onClick={() => {
+              setSelectedClient(null);
+              setModalOpen(true);
+            }}
+          >
+            Nuevo cliente
+          </Button>
+        }
+      />
+
+      <div className="grid gap-4 md:grid-cols-3">
+        {metrics.map((metric) => (
+          <MetricCard key={metric.label} {...metric} />
+        ))}
       </div>
 
       <Card>
@@ -178,7 +200,7 @@ export const ClientsPage = () => {
       ) : items.length === 0 ? (
         <EmptyState
           title="No hay clientes con esos filtros"
-          description="Prueba otra búsqueda o crea el primer cliente desde este panel."
+          description="Prueba otra busqueda o crea el primer cliente desde este panel."
         />
       ) : (
         <Card className="space-y-5">
@@ -206,15 +228,5 @@ export const ClientsPage = () => {
         />
       </Modal>
     </div>
-  );
-};
-
-const mapClientTone = (status: Client["status"]) => {
-  return (
-    {
-      LEAD: "lead",
-      ACTIVE: "active",
-      INACTIVE: "inactive"
-    }[status] as "lead" | "active" | "inactive"
   );
 };

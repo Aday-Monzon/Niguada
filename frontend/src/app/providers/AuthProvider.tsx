@@ -9,6 +9,7 @@ import {
 import { apiClient } from "../../lib/api/client";
 import { tokenStorage } from "../../lib/auth/token-storage";
 import { AuthSession, User } from "../../types/domain";
+import { authApi } from "../../features/auth/api";
 
 type AuthContextValue = {
   user: User | null;
@@ -34,7 +35,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   };
 
   const refreshProfile = async () => {
-    const response = await apiClient.get<User>("/auth/me");
+    const response = await authApi.me();
     setUser(response.data);
   };
 

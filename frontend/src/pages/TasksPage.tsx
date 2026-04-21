@@ -4,8 +4,10 @@ import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import { EmptyState } from "../components/ui/EmptyState";
 import { Input } from "../components/ui/Input";
+import { MetricCard } from "../components/ui/MetricCard";
 import { Modal } from "../components/ui/Modal";
 import { Pagination } from "../components/ui/Pagination";
+import { PageHeader } from "../components/ui/PageHeader";
 import { Select } from "../components/ui/Select";
 import { Spinner } from "../components/ui/Spinner";
 import { StatusBadge } from "../components/ui/StatusBadge";
@@ -15,6 +17,7 @@ import { opportunitiesApi } from "../features/opportunities/api";
 import { TaskForm, TaskFormValues } from "../features/tasks/components/TaskForm";
 import { tasksApi } from "../features/tasks/api";
 import { ApiError } from "../lib/api/client";
+import { taskPriorityToneMap, taskStatusToneMap } from "../lib/constants/status";
 import { emptyToUndefined } from "../lib/utils/forms";
 import { formatDate } from "../lib/utils/format";
 import { Client, Opportunity, Task } from "../types/domain";
@@ -47,12 +50,14 @@ export const TasksPage = () => {
     try {
       setLoading(true);
       setError(null);
+
       const result = await tasksApi.list({
         page,
         pageSize: 8,
         search,
         status: status || undefined
       });
+
       setItems(result.items);
       setPageCount(result.meta?.pageCount ?? 1);
     } catch (error) {
@@ -93,7 +98,7 @@ export const TasksPage = () => {
           <div>
             <p className="font-semibold text-slate-900">{item.title}</p>
             <p className="text-xs text-slate-500">
-              {item.client?.companyName ?? "Sin cliente"} · {item.assignee.firstName}
+              {item.client?.companyName ?? "Sin cliente"} | {item.assignee.firstName}
             </p>
           </div>
         )
@@ -101,12 +106,12 @@ export const TasksPage = () => {
       {
         key: "status",
         header: "Estado",
-        render: (item: Task) => <StatusBadge tone={mapTaskStatusTone(item.status)} label={item.status} />
+        render: (item: Task) => <StatusBadge tone={taskStatusToneMap[item.status]} label={item.status} />
       },
       {
         key: "priority",
         header: "Prioridad",
-        render: (item: Task) => <StatusBadge tone={mapTaskPriorityTone(item.priority)} label={item.priority} />
+        render: (item: Task) => <StatusBadge tone={taskPriorityToneMap[item.priority]} label={item.priority} />
       },
       {
         key: "dueDate",
@@ -133,23 +138,46 @@ export const TasksPage = () => {
     []
   );
 
+  const metrics = useMemo(() => {
+    const openItems = items.filter((item) => item.status !== "DONE").length;
+    const urgentItems = items.filter((item) => item.priority === "URGENT").length;
+    const dueSoon = items.filter((item) => {
+      if (!item.dueDate) {
+        return false;
+      }
+
+      return new Date(item.dueDate).getTime() - Date.now() <= 3 * 24 * 60 * 60 * 1000;
+    }).length;
+
+    return [
+      { label: "Tareas visibles", value: String(items.length), hint: "Segmento actual de trabajo" },
+      { label: "Pendientes", value: String(openItems), hint: `${urgentItems} urgentes` },
+      { label: "Vencen pronto", value: String(dueSoon), hint: "Ventana de los proximos 3 dias" }
+    ];
+  }, [items]);
+
   return (
     <div className="space-y-6">
-      <div className="page-header">
-        <div>
-          <p className="text-xs uppercase tracking-[0.35em] text-accent-600">Ejecucion</p>
-          <h1 className="mt-2 font-display text-4xl font-bold text-slate-900">
-            Tareas con prioridad visible
-          </h1>
-        </div>
-        <Button
-          onClick={() => {
-            setSelectedTask(null);
-            setModalOpen(true);
-          }}
-        >
-          Nueva tarea
-        </Button>
+      <PageHeader
+        eyebrow="Ejecucion"
+        title="Tareas con prioridad visible"
+        description="Seguimiento operativo limpio, con filtros sencillos y jerarquia visual suficiente para sentirse como un producto real."
+        action={
+          <Button
+            onClick={() => {
+              setSelectedTask(null);
+              setModalOpen(true);
+            }}
+          >
+            Nueva tarea
+          </Button>
+        }
+      />
+
+      <div className="grid gap-4 md:grid-cols-3">
+        {metrics.map((metric) => (
+          <MetricCard key={metric.label} {...metric} />
+        ))}
       </div>
 
       <Card>
@@ -215,27 +243,5 @@ export const TasksPage = () => {
         />
       </Modal>
     </div>
-  );
-};
-
-const mapTaskStatusTone = (status: Task["status"]) => {
-  return (
-    {
-      TODO: "todo",
-      IN_PROGRESS: "progress",
-      DONE: "done",
-      CANCELED: "canceled"
-    }[status] as "todo" | "progress" | "done" | "canceled"
-  );
-};
-
-const mapTaskPriorityTone = (priority: Task["priority"]) => {
-  return (
-    {
-      LOW: "low",
-      MEDIUM: "medium",
-      HIGH: "high",
-      URGENT: "urgent"
-    }[priority] as "low" | "medium" | "high" | "urgent"
   );
 };

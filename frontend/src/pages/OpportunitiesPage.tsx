@@ -4,8 +4,10 @@ import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import { EmptyState } from "../components/ui/EmptyState";
 import { Input } from "../components/ui/Input";
+import { MetricCard } from "../components/ui/MetricCard";
 import { Modal } from "../components/ui/Modal";
 import { Pagination } from "../components/ui/Pagination";
+import { PageHeader } from "../components/ui/PageHeader";
 import { Select } from "../components/ui/Select";
 import { Spinner } from "../components/ui/Spinner";
 import { StatusBadge } from "../components/ui/StatusBadge";
@@ -17,6 +19,7 @@ import {
 } from "../features/opportunities/components/OpportunityForm";
 import { opportunitiesApi } from "../features/opportunities/api";
 import { ApiError } from "../lib/api/client";
+import { humanizeStatus, opportunityToneMap } from "../lib/constants/status";
 import { emptyToUndefined } from "../lib/utils/forms";
 import { formatCurrency, formatDate } from "../lib/utils/format";
 import { Client, Opportunity } from "../types/domain";
@@ -43,12 +46,14 @@ export const OpportunitiesPage = () => {
     try {
       setLoading(true);
       setError(null);
+
       const result = await opportunitiesApi.list({
         page,
         pageSize: 8,
         search,
         stage: stage || undefined
       });
+
       setItems(result.items);
       setPageCount(result.meta?.pageCount ?? 1);
     } catch (error) {
@@ -96,7 +101,7 @@ export const OpportunitiesPage = () => {
         key: "stage",
         header: "Fase",
         render: (item: Opportunity) => (
-          <StatusBadge tone={mapOpportunityTone(item.stage)} label={item.stage.replace("_", " ")} />
+          <StatusBadge tone={opportunityToneMap[item.stage]} label={humanizeStatus(item.stage)} />
         )
       },
       {
@@ -134,23 +139,42 @@ export const OpportunitiesPage = () => {
     []
   );
 
+  const metrics = useMemo(() => {
+    const pipelineValue = items.reduce((total, item) => total + Number(item.estimatedValue), 0);
+    const negotiationCount = items.filter((item) => item.stage === "NEGOTIATION").length;
+    const avgProbability = items.length
+      ? Math.round(items.reduce((total, item) => total + item.probability, 0) / items.length)
+      : 0;
+
+    return [
+      { label: "Oportunidades", value: String(items.length), hint: "Items visibles en esta pagina" },
+      { label: "Pipeline visible", value: formatCurrency(pipelineValue), hint: `${negotiationCount} en negociacion` },
+      { label: "Probabilidad media", value: `${avgProbability}%`, hint: "Lectura rapida del embudo" }
+    ];
+  }, [items]);
+
   return (
     <div className="space-y-6">
-      <div className="page-header">
-        <div>
-          <p className="text-xs uppercase tracking-[0.35em] text-accent-600">Pipeline</p>
-          <h1 className="mt-2 font-display text-4xl font-bold text-slate-900">
-            Oportunidades con contexto y foco
-          </h1>
-        </div>
-        <Button
-          onClick={() => {
-            setSelectedOpportunity(null);
-            setModalOpen(true);
-          }}
-        >
-          Nueva oportunidad
-        </Button>
+      <PageHeader
+        eyebrow="Pipeline"
+        title="Oportunidades con contexto y foco"
+        description="Un pipeline compacto, legible y orientado a mostrar criterio de producto y de negocio en portfolio."
+        action={
+          <Button
+            onClick={() => {
+              setSelectedOpportunity(null);
+              setModalOpen(true);
+            }}
+          >
+            Nueva oportunidad
+          </Button>
+        }
+      />
+
+      <div className="grid gap-4 md:grid-cols-3">
+        {metrics.map((metric) => (
+          <MetricCard key={metric.label} {...metric} />
+        ))}
       </div>
 
       <Card>
@@ -217,18 +241,5 @@ export const OpportunitiesPage = () => {
         />
       </Modal>
     </div>
-  );
-};
-
-const mapOpportunityTone = (stage: Opportunity["stage"]) => {
-  return (
-    {
-      LEAD: "lead",
-      QUALIFIED: "qualified",
-      PROPOSAL: "proposal",
-      NEGOTIATION: "negotiation",
-      WON: "won",
-      LOST: "lost"
-    }[stage] as "lead" | "qualified" | "proposal" | "negotiation" | "won" | "lost"
   );
 };
