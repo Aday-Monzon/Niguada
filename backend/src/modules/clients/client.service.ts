@@ -22,6 +22,58 @@ const clientInclude = {
   }
 } satisfies Prisma.ClientInclude;
 
+const ensureClientExists = async (id: string) => {
+  const client = await prisma.client.findUnique({
+    where: { id },
+    include: {
+      ...clientInclude,
+      opportunities: {
+        select: {
+          id: true,
+          title: true,
+          stage: true,
+          estimatedValue: true,
+          expectedCloseDate: true
+        },
+        orderBy: { createdAt: "desc" }
+      },
+      tasks: {
+        select: {
+          id: true,
+          title: true,
+          status: true,
+          priority: true,
+          dueDate: true
+        },
+        orderBy: { createdAt: "desc" },
+        take: 10
+      },
+      notes: {
+        select: {
+          id: true,
+          content: true,
+          createdAt: true,
+          author: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true
+            }
+          }
+        },
+        orderBy: { createdAt: "desc" },
+        take: 10
+      }
+    }
+  });
+
+  if (!client) {
+    throw new AppError(404, "Client not found");
+  }
+
+  return client;
+};
+
 export const clientService = {
   async list(query: {
     page: number;
@@ -63,55 +115,7 @@ export const clientService = {
   },
 
   async getById(id: string) {
-    const client = await prisma.client.findUnique({
-      where: { id },
-      include: {
-        ...clientInclude,
-        opportunities: {
-          select: {
-            id: true,
-            title: true,
-            stage: true,
-            estimatedValue: true,
-            expectedCloseDate: true
-          },
-          orderBy: { createdAt: "desc" }
-        },
-        tasks: {
-          select: {
-            id: true,
-            title: true,
-            status: true,
-            priority: true,
-            dueDate: true
-          },
-          orderBy: { createdAt: "desc" },
-          take: 10
-        },
-        notes: {
-          select: {
-            id: true,
-            content: true,
-            createdAt: true,
-            author: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true
-              }
-            }
-          },
-          orderBy: { createdAt: "desc" },
-          take: 10
-        }
-      }
-    });
-
-    if (!client) {
-      throw new AppError(404, "Client not found");
-    }
-
-    return client;
+    return ensureClientExists(id);
   },
 
   async create(payload: Prisma.ClientUncheckedCreateInput) {
@@ -122,7 +126,7 @@ export const clientService = {
   },
 
   async update(id: string, payload: Prisma.ClientUncheckedUpdateInput) {
-    await this.getById(id);
+    await ensureClientExists(id);
 
     return prisma.client.update({
       where: { id },
@@ -132,7 +136,7 @@ export const clientService = {
   },
 
   async remove(id: string) {
-    await this.getById(id);
+    await ensureClientExists(id);
     await prisma.client.delete({
       where: { id }
     });

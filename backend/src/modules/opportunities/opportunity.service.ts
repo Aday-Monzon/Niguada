@@ -27,6 +27,48 @@ const opportunityInclude = {
   }
 } satisfies Prisma.OpportunityInclude;
 
+const ensureOpportunityExists = async (id: string) => {
+  const opportunity = await prisma.opportunity.findUnique({
+    where: { id },
+    include: {
+      ...opportunityInclude,
+      tasks: {
+        select: {
+          id: true,
+          title: true,
+          status: true,
+          priority: true,
+          dueDate: true
+        },
+        orderBy: { createdAt: "desc" },
+        take: 10
+      },
+      notes: {
+        select: {
+          id: true,
+          content: true,
+          createdAt: true,
+          author: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true
+            }
+          }
+        },
+        orderBy: { createdAt: "desc" },
+        take: 10
+      }
+    }
+  });
+
+  if (!opportunity) {
+    throw new AppError(404, "Opportunity not found");
+  }
+
+  return opportunity;
+};
+
 export const opportunityService = {
   async list(query: {
     page: number;
@@ -69,45 +111,7 @@ export const opportunityService = {
   },
 
   async getById(id: string) {
-    const opportunity = await prisma.opportunity.findUnique({
-      where: { id },
-      include: {
-        ...opportunityInclude,
-        tasks: {
-          select: {
-            id: true,
-            title: true,
-            status: true,
-            priority: true,
-            dueDate: true
-          },
-          orderBy: { createdAt: "desc" },
-          take: 10
-        },
-        notes: {
-          select: {
-            id: true,
-            content: true,
-            createdAt: true,
-            author: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true
-              }
-            }
-          },
-          orderBy: { createdAt: "desc" },
-          take: 10
-        }
-      }
-    });
-
-    if (!opportunity) {
-      throw new AppError(404, "Opportunity not found");
-    }
-
-    return opportunity;
+    return ensureOpportunityExists(id);
   },
 
   async create(payload: Prisma.OpportunityUncheckedCreateInput) {
@@ -118,7 +122,7 @@ export const opportunityService = {
   },
 
   async update(id: string, payload: Prisma.OpportunityUncheckedUpdateInput) {
-    await this.getById(id);
+    await ensureOpportunityExists(id);
 
     return prisma.opportunity.update({
       where: { id },
@@ -128,7 +132,7 @@ export const opportunityService = {
   },
 
   async remove(id: string) {
-    await this.getById(id);
+    await ensureOpportunityExists(id);
     await prisma.opportunity.delete({
       where: { id }
     });

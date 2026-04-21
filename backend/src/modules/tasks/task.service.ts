@@ -35,6 +35,19 @@ const taskInclude = {
   }
 } satisfies Prisma.TaskInclude;
 
+const ensureTaskExists = async (id: string) => {
+  const task = await prisma.task.findUnique({
+    where: { id },
+    include: taskInclude
+  });
+
+  if (!task) {
+    throw new AppError(404, "Task not found");
+  }
+
+  return task;
+};
+
 export const taskService = {
   async list(query: {
     page: number;
@@ -81,16 +94,7 @@ export const taskService = {
   },
 
   async getById(id: string) {
-    const task = await prisma.task.findUnique({
-      where: { id },
-      include: taskInclude
-    });
-
-    if (!task) {
-      throw new AppError(404, "Task not found");
-    }
-
-    return task;
+    return ensureTaskExists(id);
   },
 
   async create(payload: Prisma.TaskUncheckedCreateInput) {
@@ -101,7 +105,7 @@ export const taskService = {
   },
 
   async update(id: string, payload: Prisma.TaskUncheckedUpdateInput) {
-    await this.getById(id);
+    await ensureTaskExists(id);
 
     return prisma.task.update({
       where: { id },
@@ -111,7 +115,7 @@ export const taskService = {
   },
 
   async remove(id: string) {
-    await this.getById(id);
+    await ensureTaskExists(id);
     await prisma.task.delete({
       where: { id }
     });

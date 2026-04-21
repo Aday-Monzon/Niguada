@@ -27,6 +27,19 @@ const noteInclude = {
   }
 } satisfies Prisma.NoteInclude;
 
+const ensureNoteExists = async (id: string) => {
+  const note = await prisma.note.findUnique({
+    where: { id },
+    include: noteInclude
+  });
+
+  if (!note) {
+    throw new AppError(404, "Note not found");
+  }
+
+  return note;
+};
+
 export const noteService = {
   async list(query: {
     page: number;
@@ -60,16 +73,7 @@ export const noteService = {
   },
 
   async getById(id: string) {
-    const note = await prisma.note.findUnique({
-      where: { id },
-      include: noteInclude
-    });
-
-    if (!note) {
-      throw new AppError(404, "Note not found");
-    }
-
-    return note;
+    return ensureNoteExists(id);
   },
 
   async create(payload: Prisma.NoteUncheckedCreateInput) {
@@ -80,7 +84,7 @@ export const noteService = {
   },
 
   async update(id: string, payload: Prisma.NoteUncheckedUpdateInput) {
-    await this.getById(id);
+    await ensureNoteExists(id);
 
     return prisma.note.update({
       where: { id },
@@ -90,7 +94,7 @@ export const noteService = {
   },
 
   async remove(id: string) {
-    await this.getById(id);
+    await ensureNoteExists(id);
     await prisma.note.delete({
       where: { id }
     });
