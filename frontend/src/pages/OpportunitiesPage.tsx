@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useAuth } from "../app/providers/AuthProvider";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
+import { ConfirmDialog } from "../components/ui/ConfirmDialog";
 import { EmptyState } from "../components/ui/EmptyState";
 import { Input } from "../components/ui/Input";
 import { MetricCard } from "../components/ui/MetricCard";
@@ -19,6 +20,7 @@ import {
 } from "../features/opportunities/components/OpportunityForm";
 import {
   useCreateOpportunity,
+  useDeleteOpportunity,
   useOpportunities,
   useUpdateOpportunity
 } from "../features/opportunities/hooks";
@@ -37,6 +39,7 @@ export const OpportunitiesPage = () => {
   const [page, setPage] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedOpportunity, setSelectedOpportunity] = useState<Opportunity | null>(null);
+  const [opportunityPendingDelete, setOpportunityPendingDelete] = useState<Opportunity | null>(null);
 
   const opportunitiesQuery = useOpportunities({
     page,
@@ -47,6 +50,7 @@ export const OpportunitiesPage = () => {
   const clientsQuery = useClients({ page: 1, pageSize: REFERENCE_PAGE_SIZE });
   const createOpportunity = useCreateOpportunity();
   const updateOpportunity = useUpdateOpportunity();
+  const deleteOpportunity = useDeleteOpportunity();
 
   const items = opportunitiesQuery.data?.items ?? [];
   const pageCount = opportunitiesQuery.data?.meta?.pageCount ?? 1;
@@ -66,6 +70,15 @@ export const OpportunitiesPage = () => {
 
     setModalOpen(false);
     setSelectedOpportunity(null);
+  };
+
+  const handleDelete = async () => {
+    if (!opportunityPendingDelete) {
+      return;
+    }
+
+    await deleteOpportunity.mutateAsync(opportunityPendingDelete.id);
+    setOpportunityPendingDelete(null);
   };
 
   const columns = useMemo(
@@ -107,19 +120,31 @@ export const OpportunitiesPage = () => {
         header: "",
         className: "text-right",
         render: (item: Opportunity) => (
-          <Button
-            variant="ghost"
-            onClick={() => {
-              setSelectedOpportunity(item);
-              setModalOpen(true);
-            }}
-          >
-            Editar
-          </Button>
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setSelectedOpportunity(item);
+                setModalOpen(true);
+              }}
+            >
+              Editar
+            </Button>
+            <Button
+              variant="danger"
+              busy={deleteOpportunity.isLoading && deleteOpportunity.variables === item.id}
+              busyLabel="Eliminando..."
+              onClick={() => {
+                setOpportunityPendingDelete(item);
+              }}
+            >
+              Eliminar
+            </Button>
+          </div>
         )
       }
     ],
-    []
+    [deleteOpportunity.isLoading, deleteOpportunity.variables]
   );
 
   const metrics = useMemo(() => {
@@ -241,6 +266,24 @@ export const OpportunitiesPage = () => {
           }}
         />
       </Modal>
+
+      <ConfirmDialog
+        open={Boolean(opportunityPendingDelete)}
+        title="Eliminar oportunidad"
+        description={
+          opportunityPendingDelete
+            ? `Vas a eliminar ${opportunityPendingDelete.title}. Esta accion no se puede deshacer.`
+            : ""
+        }
+        confirmLabel="Eliminar oportunidad"
+        busy={deleteOpportunity.isLoading}
+        onClose={() => {
+          if (!deleteOpportunity.isLoading) {
+            setOpportunityPendingDelete(null);
+          }
+        }}
+        onConfirm={handleDelete}
+      />
     </div>
   );
 };

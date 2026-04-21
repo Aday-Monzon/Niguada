@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useAuth } from "../app/providers/AuthProvider";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
+import { ConfirmDialog } from "../components/ui/ConfirmDialog";
 import { EmptyState } from "../components/ui/EmptyState";
 import { Input } from "../components/ui/Input";
 import { MetricCard } from "../components/ui/MetricCard";
@@ -15,7 +16,7 @@ import { Table } from "../components/ui/Table";
 import { useClients } from "../features/clients/hooks";
 import { useOpportunities } from "../features/opportunities/hooks";
 import { TaskForm, TaskFormValues } from "../features/tasks/components/TaskForm";
-import { useCreateTask, useTasks, useUpdateTask } from "../features/tasks/hooks";
+import { useCreateTask, useDeleteTask, useTasks, useUpdateTask } from "../features/tasks/hooks";
 import { taskPriorityToneMap, taskStatusToneMap } from "../lib/constants/status";
 import { emptyToUndefined } from "../lib/utils/forms";
 import { formatDate } from "../lib/utils/format";
@@ -31,6 +32,7 @@ export const TasksPage = () => {
   const [page, setPage] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [taskPendingDelete, setTaskPendingDelete] = useState<Task | null>(null);
 
   const tasksQuery = useTasks({
     page,
@@ -42,6 +44,7 @@ export const TasksPage = () => {
   const opportunitiesQuery = useOpportunities({ page: 1, pageSize: REFERENCE_PAGE_SIZE });
   const createTask = useCreateTask();
   const updateTask = useUpdateTask();
+  const deleteTask = useDeleteTask();
 
   const items = tasksQuery.data?.items ?? [];
   const pageCount = tasksQuery.data?.meta?.pageCount ?? 1;
@@ -62,6 +65,15 @@ export const TasksPage = () => {
 
     setModalOpen(false);
     setSelectedTask(null);
+  };
+
+  const handleDelete = async () => {
+    if (!taskPendingDelete) {
+      return;
+    }
+
+    await deleteTask.mutateAsync(taskPendingDelete.id);
+    setTaskPendingDelete(null);
   };
 
   const columns = useMemo(
@@ -98,19 +110,31 @@ export const TasksPage = () => {
         header: "",
         className: "text-right",
         render: (item: Task) => (
-          <Button
-            variant="ghost"
-            onClick={() => {
-              setSelectedTask(item);
-              setModalOpen(true);
-            }}
-          >
-            Editar
-          </Button>
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setSelectedTask(item);
+                setModalOpen(true);
+              }}
+            >
+              Editar
+            </Button>
+            <Button
+              variant="danger"
+              busy={deleteTask.isLoading && deleteTask.variables === item.id}
+              busyLabel="Eliminando..."
+              onClick={() => {
+                setTaskPendingDelete(item);
+              }}
+            >
+              Eliminar
+            </Button>
+          </div>
         )
       }
     ],
-    []
+    [deleteTask.isLoading, deleteTask.variables]
   );
 
   const metrics = useMemo(() => {
@@ -237,6 +261,24 @@ export const TasksPage = () => {
           }}
         />
       </Modal>
+
+      <ConfirmDialog
+        open={Boolean(taskPendingDelete)}
+        title="Eliminar tarea"
+        description={
+          taskPendingDelete
+            ? `Vas a eliminar ${taskPendingDelete.title}. Esta accion no se puede deshacer.`
+            : ""
+        }
+        confirmLabel="Eliminar tarea"
+        busy={deleteTask.isLoading}
+        onClose={() => {
+          if (!deleteTask.isLoading) {
+            setTaskPendingDelete(null);
+          }
+        }}
+        onConfirm={handleDelete}
+      />
     </div>
   );
 };
