@@ -31,7 +31,7 @@ export const OpportunitiesPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const [stage, setStage] = useState("");
+  const [stage, setStage] = useState<Opportunity["stage"] | "">("");
   const [page, setPage] = useState(1);
   const [pageCount, setPageCount] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
@@ -191,7 +191,7 @@ export const OpportunitiesPage = () => {
             value={stage}
             onChange={(event) => {
               setPage(1);
-              setStage(event.target.value);
+              setStage(event.target.value as Opportunity["stage"] | "");
             }}
           >
             <option value="">Todas las fases</option>

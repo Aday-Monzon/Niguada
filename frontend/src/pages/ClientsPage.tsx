@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useAuth } from "../app/providers/AuthProvider";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
@@ -13,62 +13,52 @@ import { Spinner } from "../components/ui/Spinner";
 import { StatusBadge } from "../components/ui/StatusBadge";
 import { Table } from "../components/ui/Table";
 import { ClientForm, ClientFormValues } from "../features/clients/components/ClientForm";
-import { clientsApi } from "../features/clients/api";
-import { ApiError } from "../lib/api/client";
+import {
+  useClients,
+  useCreateClient,
+  useUpdateClient
+} from "../features/clients/hooks";
 import { clientToneMap } from "../lib/constants/status";
 import { emptyToUndefined } from "../lib/utils/forms";
 import { formatCurrency } from "../lib/utils/format";
 import { Client } from "../types/domain";
 
+const PAGE_SIZE = 8;
+
 export const ClientsPage = () => {
   const { user } = useAuth();
-  const [items, setItems] = useState<Client[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("");
+  const [status, setStatus] = useState<Client["status"] | "">("");
   const [page, setPage] = useState(1);
-  const [pageCount, setPageCount] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
 
-  const loadClients = async () => {
-    try {
-      setLoading(true);
-      setError(null);
+  const clientsQuery = useClients({
+    page,
+    pageSize: PAGE_SIZE,
+    search: search || undefined,
+    status: status || undefined
+  });
+  const createClient = useCreateClient();
+  const updateClient = useUpdateClient();
 
-      const result = await clientsApi.list({
-        page,
-        pageSize: 8,
-        search,
-        status: status || undefined
-      });
-
-      setItems(result.items);
-      setPageCount(result.meta?.pageCount ?? 1);
-    } catch (error) {
-      setError(error instanceof ApiError ? error.message : "No se pudieron cargar los clientes");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadClients();
-  }, [page, search, status]);
+  const items = clientsQuery.data?.items ?? [];
+  const pageCount = clientsQuery.data?.meta?.pageCount ?? 1;
 
   const handleSubmit = async (values: ClientFormValues) => {
     const payload = emptyToUndefined(values);
 
     if (selectedClient) {
-      await clientsApi.update(selectedClient.id, payload);
+      await updateClient.mutateAsync({
+        id: selectedClient.id,
+        payload
+      });
     } else {
-      await clientsApi.create(payload);
+      await createClient.mutateAsync(payload);
     }
 
     setModalOpen(false);
     setSelectedClient(null);
-    await loadClients();
   };
 
   const columns = useMemo(
@@ -138,11 +128,11 @@ export const ClientsPage = () => {
     const portfolioRevenue = items.reduce((total, item) => total + Number(item.annualRevenue ?? 0), 0);
 
     return [
-      { label: "Clientes visibles", value: String(items.length), hint: "Segmento cargado en esta pagina" },
+      { label: "Clientes visibles", value: String(items.length), hint: clientsQuery.isFetching ? "Actualizando resultados" : "Segmento cargado en esta pagina" },
       { label: "Clientes activos", value: String(activeClients), hint: "Cuentas en relacion activa" },
       { label: "Revenue visible", value: formatCurrency(portfolioRevenue), hint: `${leads} leads en seguimiento` }
     ];
-  }, [items]);
+  }, [clientsQuery.isFetching, items]);
 
   return (
     <div className="space-y-6">
@@ -182,7 +172,7 @@ export const ClientsPage = () => {
             value={status}
             onChange={(event) => {
               setPage(1);
-              setStatus(event.target.value);
+              setStatus(event.target.value as Client["status"] | "");
             }}
           >
             <option value="">Todos los estados</option>
@@ -193,10 +183,13 @@ export const ClientsPage = () => {
         </div>
       </Card>
 
-      {loading ? (
+      {clientsQuery.isLoading ? (
         <Spinner />
-      ) : error ? (
-        <EmptyState title="No pudimos cargar clientes" description={error} />
+      ) : clientsQuery.isError ? (
+        <EmptyState
+          title="No pudimos cargar clientes"
+          description={clientsQuery.error instanceof Error ? clientsQuery.error.message : "Ha ocurrido un error inesperado"}
+        />
       ) : items.length === 0 ? (
         <EmptyState
           title="No hay clientes con esos filtros"
@@ -204,6 +197,11 @@ export const ClientsPage = () => {
         />
       ) : (
         <Card className="space-y-5">
+          {clientsQuery.isFetching ? (
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
+              Actualizando resultados...
+            </div>
+          ) : null}
           <Table columns={columns} data={items} rowKey={(item) => item.id} />
           <Pagination page={page} pageCount={pageCount} onPageChange={setPage} />
         </Card>

@@ -30,7 +30,7 @@ export const TasksPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("");
+  const [status, setStatus] = useState<Task["status"] | "">("");
   const [page, setPage] = useState(1);
   const [pageCount, setPageCount] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
@@ -194,7 +194,7 @@ export const TasksPage = () => {
             value={status}
             onChange={(event) => {
               setPage(1);
-              setStatus(event.target.value);
+              setStatus(event.target.value as Task["status"] | "");
             }}
           >
             <option value="">Todos los estados</option>

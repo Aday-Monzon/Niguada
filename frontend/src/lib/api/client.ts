@@ -35,7 +35,7 @@ const buildUrl = (path: string, query?: RequestOptions["query"]) => {
   return url.toString();
 };
 
-const parseResponse = async <T>(response: Response) => {
+const parseResponse = async <T>(response: Response): Promise<ApiEnvelope<T>> => {
   const data = (await response.json().catch(() => null)) as ApiEnvelope<T> | null;
 
   if (!response.ok) {
@@ -62,7 +62,7 @@ export const apiClient = {
     unauthorizedHandler = handler;
   },
 
-  async request<T>(path: string, options: RequestOptions = {}) {
+  async request<T>(path: string, options: RequestOptions = {}): Promise<ApiEnvelope<T>> {
     const token = tokenStorage.get();
     const headers = new Headers(options.headers);
 
@@ -104,14 +104,19 @@ export const apiClient = {
   },
 
   async delete(path: string) {
-    return fetch(buildUrl(path), {
+    const token = tokenStorage.get();
+    const response = await fetch(buildUrl(path), {
       method: "DELETE",
-      headers: tokenStorage.get()
+      headers: token
         ? {
-            Authorization: `Bearer ${tokenStorage.get()}`
+            Authorization: `Bearer ${token}`
           }
         : undefined
     });
+
+    if (!response.ok) {
+      await parseResponse(response);
+    }
   }
 };
 
