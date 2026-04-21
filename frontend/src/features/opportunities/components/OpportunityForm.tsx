@@ -98,10 +98,14 @@ export const OpportunityForm = ({
         <Input {...register("lostReason")} placeholder="Solo si aplica" />
       </FormField>
       <div className="flex justify-end gap-3 pt-3">
-        <Button type="button" variant="ghost" onClick={onCancel}>
+        <Button type="button" variant="ghost" onClick={onCancel} disabled={isSubmitting}>
           Cancelar
         </Button>
-        <Button type="submit" busy={isSubmitting}>
+        <Button
+          type="submit"
+          busy={isSubmitting}
+          busyLabel={initialValues?.id ? "Actualizando oportunidad..." : "Creando oportunidad..."}
+        >
           {initialValues?.id ? "Actualizar oportunidad" : "Crear oportunidad"}
         </Button>
       </div>

@@ -4,10 +4,11 @@ import { cn } from "../../lib/utils/cn";
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: "primary" | "secondary" | "ghost" | "danger";
   busy?: boolean;
+  busyLabel?: string;
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = "primary", busy, children, disabled, ...props }, ref) => {
+  ({ className, variant = "primary", busy, busyLabel = "Guardando...", children, disabled, ...props }, ref) => {
     const variants = {
       primary: "bg-ink text-white hover:bg-slate-800",
       secondary: "bg-accent-500 text-white hover:bg-accent-600",
@@ -26,7 +27,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         disabled={disabled || busy}
         {...props}
       >
-        {busy ? "Guardando..." : children}
+        {busy ? busyLabel : children}
       </button>
     );
   }

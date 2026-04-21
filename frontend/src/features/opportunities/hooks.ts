@@ -1,13 +1,12 @@
 import {
-  useMutation,
   useQuery,
-  useQueryClient
 } from "@tanstack/react-query";
 import {
   opportunitiesApi,
   OpportunityListParams,
   OpportunityPayload
 } from "./api";
+import { useFeedbackMutation } from "../../lib/query/useFeedbackMutation";
 
 export const opportunityKeys = {
   all: ["opportunities"] as const,
@@ -32,37 +31,35 @@ export const useOpportunity = (id?: string) =>
   });
 
 export const useCreateOpportunity = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
+  return useFeedbackMutation({
     mutationFn: (payload: OpportunityPayload) => opportunitiesApi.create(payload),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: opportunityKeys.all });
-    }
+    successMessage: "Oportunidad creada correctamente",
+    errorMessage: "Error al crear oportunidad",
+    invalidateQueryKeys: [opportunityKeys.all]
   });
 };
 
 export const useUpdateOpportunity = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
+  return useFeedbackMutation({
     mutationFn: ({ id, payload }: { id: string; payload: Partial<OpportunityPayload> }) =>
       opportunitiesApi.update(id, payload),
-    onSuccess: (opportunity) => {
-      queryClient.invalidateQueries({ queryKey: opportunityKeys.all });
-      queryClient.setQueryData(opportunityKeys.detail(opportunity.id), opportunity);
+    successMessage: "Oportunidad actualizada correctamente",
+    errorMessage: "Error al actualizar oportunidad",
+    invalidateQueryKeys: [opportunityKeys.all],
+    onSuccess: ({ data, queryClient }) => {
+      queryClient.setQueryData(opportunityKeys.detail(data.id), data);
     }
   });
 };
 
 export const useDeleteOpportunity = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
+  return useFeedbackMutation({
     mutationFn: (id: string) => opportunitiesApi.remove(id),
-    onSuccess: (_data, id) => {
-      queryClient.invalidateQueries({ queryKey: opportunityKeys.all });
-      queryClient.removeQueries({ queryKey: opportunityKeys.detail(id) });
+    successMessage: "Oportunidad eliminada correctamente",
+    errorMessage: "Error al eliminar oportunidad",
+    invalidateQueryKeys: [opportunityKeys.all],
+    onSuccess: ({ variables, queryClient }) => {
+      queryClient.removeQueries({ queryKey: opportunityKeys.detail(variables) });
     }
   });
 };

@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useAuth } from "../app/providers/AuthProvider";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
+import { ConfirmDialog } from "../components/ui/ConfirmDialog";
 import { EmptyState } from "../components/ui/EmptyState";
 import { Input } from "../components/ui/Input";
 import { MetricCard } from "../components/ui/MetricCard";
@@ -16,6 +17,7 @@ import { ClientForm, ClientFormValues } from "../features/clients/components/Cli
 import {
   useClients,
   useCreateClient,
+  useDeleteClient,
   useUpdateClient
 } from "../features/clients/hooks";
 import { clientToneMap } from "../lib/constants/status";
@@ -32,6 +34,7 @@ export const ClientsPage = () => {
   const [page, setPage] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [clientPendingDelete, setClientPendingDelete] = useState<Client | null>(null);
 
   const clientsQuery = useClients({
     page,
@@ -41,6 +44,7 @@ export const ClientsPage = () => {
   });
   const createClient = useCreateClient();
   const updateClient = useUpdateClient();
+  const deleteClient = useDeleteClient();
 
   const items = clientsQuery.data?.items ?? [];
   const pageCount = clientsQuery.data?.meta?.pageCount ?? 1;
@@ -59,6 +63,15 @@ export const ClientsPage = () => {
 
     setModalOpen(false);
     setSelectedClient(null);
+  };
+
+  const handleDelete = async () => {
+    if (!clientPendingDelete) {
+      return;
+    }
+
+    await deleteClient.mutateAsync(clientPendingDelete.id);
+    setClientPendingDelete(null);
   };
 
   const columns = useMemo(
@@ -107,19 +120,31 @@ export const ClientsPage = () => {
         header: "",
         className: "text-right",
         render: (item: Client) => (
-          <Button
-            variant="ghost"
-            onClick={() => {
-              setSelectedClient(item);
-              setModalOpen(true);
-            }}
-          >
-            Editar
-          </Button>
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setSelectedClient(item);
+                setModalOpen(true);
+              }}
+            >
+              Editar
+            </Button>
+            <Button
+              variant="danger"
+              busy={deleteClient.isLoading && deleteClient.variables === item.id}
+              busyLabel="Eliminando..."
+              onClick={() => {
+                setClientPendingDelete(item);
+              }}
+            >
+              Eliminar
+            </Button>
+          </div>
         )
       }
     ],
-    []
+    [deleteClient.isLoading, deleteClient.variables]
   );
 
   const metrics = useMemo(() => {
@@ -225,6 +250,24 @@ export const ClientsPage = () => {
           }}
         />
       </Modal>
+
+      <ConfirmDialog
+        open={Boolean(clientPendingDelete)}
+        title="Eliminar cliente"
+        description={
+          clientPendingDelete
+            ? `Vas a eliminar ${clientPendingDelete.companyName}. Esta accion no se puede deshacer.`
+            : ""
+        }
+        confirmLabel="Eliminar cliente"
+        busy={deleteClient.isLoading}
+        onClose={() => {
+          if (!deleteClient.isLoading) {
+            setClientPendingDelete(null);
+          }
+        }}
+        onConfirm={handleDelete}
+      />
     </div>
   );
 };

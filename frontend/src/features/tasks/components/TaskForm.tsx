@@ -111,10 +111,14 @@ export const TaskForm = ({
         <Input {...register("description")} placeholder="Contexto rapido para el seguimiento" />
       </FormField>
       <div className="flex justify-end gap-3 pt-3">
-        <Button type="button" variant="ghost" onClick={onCancel}>
+        <Button type="button" variant="ghost" onClick={onCancel} disabled={isSubmitting}>
           Cancelar
         </Button>
-        <Button type="submit" busy={isSubmitting}>
+        <Button
+          type="submit"
+          busy={isSubmitting}
+          busyLabel={initialValues?.id ? "Actualizando tarea..." : "Creando tarea..."}
+        >
           {initialValues?.id ? "Actualizar tarea" : "Crear tarea"}
         </Button>
       </div>

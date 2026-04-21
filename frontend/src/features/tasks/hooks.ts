@@ -1,9 +1,8 @@
 import {
-  useMutation,
   useQuery,
-  useQueryClient
 } from "@tanstack/react-query";
 import { tasksApi, TaskListParams, TaskPayload } from "./api";
+import { useFeedbackMutation } from "../../lib/query/useFeedbackMutation";
 
 export const taskKeys = {
   all: ["tasks"] as const,
@@ -28,37 +27,35 @@ export const useTask = (id?: string) =>
   });
 
 export const useCreateTask = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
+  return useFeedbackMutation({
     mutationFn: (payload: TaskPayload) => tasksApi.create(payload),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: taskKeys.all });
-    }
+    successMessage: "Tarea creada correctamente",
+    errorMessage: "Error al crear tarea",
+    invalidateQueryKeys: [taskKeys.all]
   });
 };
 
 export const useUpdateTask = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
+  return useFeedbackMutation({
     mutationFn: ({ id, payload }: { id: string; payload: Partial<TaskPayload> }) =>
       tasksApi.update(id, payload),
-    onSuccess: (task) => {
-      queryClient.invalidateQueries({ queryKey: taskKeys.all });
-      queryClient.setQueryData(taskKeys.detail(task.id), task);
+    successMessage: "Tarea actualizada correctamente",
+    errorMessage: "Error al actualizar tarea",
+    invalidateQueryKeys: [taskKeys.all],
+    onSuccess: ({ data, queryClient }) => {
+      queryClient.setQueryData(taskKeys.detail(data.id), data);
     }
   });
 };
 
 export const useDeleteTask = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
+  return useFeedbackMutation({
     mutationFn: (id: string) => tasksApi.remove(id),
-    onSuccess: (_data, id) => {
-      queryClient.invalidateQueries({ queryKey: taskKeys.all });
-      queryClient.removeQueries({ queryKey: taskKeys.detail(id) });
+    successMessage: "Tarea eliminada correctamente",
+    errorMessage: "Error al eliminar tarea",
+    invalidateQueryKeys: [taskKeys.all],
+    onSuccess: ({ variables, queryClient }) => {
+      queryClient.removeQueries({ queryKey: taskKeys.detail(variables) });
     }
   });
 };

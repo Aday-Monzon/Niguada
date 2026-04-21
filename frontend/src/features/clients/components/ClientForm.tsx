@@ -90,10 +90,14 @@ export const ClientForm = ({ initialValues, ownerId, onSubmit, onCancel }: Clien
       </div>
 
       <div className="flex justify-end gap-3 pt-3">
-        <Button type="button" variant="ghost" onClick={onCancel}>
+        <Button type="button" variant="ghost" onClick={onCancel} disabled={isSubmitting}>
           Cancelar
         </Button>
-        <Button type="submit" busy={isSubmitting}>
+        <Button
+          type="submit"
+          busy={isSubmitting}
+          busyLabel={initialValues?.id ? "Actualizando cliente..." : "Creando cliente..."}
+        >
           {initialValues?.id ? "Actualizar cliente" : "Crear cliente"}
         </Button>
       </div>

@@ -1,9 +1,8 @@
 import {
-  useMutation,
   useQuery,
-  useQueryClient
 } from "@tanstack/react-query";
 import { clientsApi, ClientListParams, ClientPayload } from "./api";
+import { useFeedbackMutation } from "../../lib/query/useFeedbackMutation";
 
 export const clientKeys = {
   all: ["clients"] as const,
@@ -30,37 +29,35 @@ export const useClient = (id?: string) => {
 };
 
 export const useCreateClient = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
+  return useFeedbackMutation({
     mutationFn: (payload: ClientPayload) => clientsApi.create(payload),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: clientKeys.all });
-    }
+    successMessage: "Cliente creado correctamente",
+    errorMessage: "Error al crear cliente",
+    invalidateQueryKeys: [clientKeys.all]
   });
 };
 
 export const useUpdateClient = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
+  return useFeedbackMutation({
     mutationFn: ({ id, payload }: { id: string; payload: Partial<ClientPayload> }) =>
       clientsApi.update(id, payload),
-    onSuccess: (client) => {
-      queryClient.invalidateQueries({ queryKey: clientKeys.all });
-      queryClient.setQueryData(clientKeys.detail(client.id), client);
+    successMessage: "Cliente actualizado correctamente",
+    errorMessage: "Error al actualizar cliente",
+    invalidateQueryKeys: [clientKeys.all],
+    onSuccess: ({ data, queryClient }) => {
+      queryClient.setQueryData(clientKeys.detail(data.id), data);
     }
   });
 };
 
 export const useDeleteClient = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
+  return useFeedbackMutation({
     mutationFn: (id: string) => clientsApi.remove(id),
-    onSuccess: (_data, id) => {
-      queryClient.invalidateQueries({ queryKey: clientKeys.all });
-      queryClient.removeQueries({ queryKey: clientKeys.detail(id) });
+    successMessage: "Cliente eliminado correctamente",
+    errorMessage: "Error al eliminar cliente",
+    invalidateQueryKeys: [clientKeys.all],
+    onSuccess: ({ variables, queryClient }) => {
+      queryClient.removeQueries({ queryKey: clientKeys.detail(variables) });
     }
   });
 };
