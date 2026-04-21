@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useAuth } from "../app/providers/AuthProvider";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
@@ -12,81 +12,56 @@ import { Select } from "../components/ui/Select";
 import { Spinner } from "../components/ui/Spinner";
 import { StatusBadge } from "../components/ui/StatusBadge";
 import { Table } from "../components/ui/Table";
-import { clientsApi } from "../features/clients/api";
-import { opportunitiesApi } from "../features/opportunities/api";
+import { useClients } from "../features/clients/hooks";
+import { useOpportunities } from "../features/opportunities/hooks";
 import { TaskForm, TaskFormValues } from "../features/tasks/components/TaskForm";
-import { tasksApi } from "../features/tasks/api";
-import { ApiError } from "../lib/api/client";
+import { useCreateTask, useTasks, useUpdateTask } from "../features/tasks/hooks";
 import { taskPriorityToneMap, taskStatusToneMap } from "../lib/constants/status";
 import { emptyToUndefined } from "../lib/utils/forms";
 import { formatDate } from "../lib/utils/format";
-import { Client, Opportunity, Task } from "../types/domain";
+import { Task } from "../types/domain";
+
+const PAGE_SIZE = 8;
+const REFERENCE_PAGE_SIZE = 100;
 
 export const TasksPage = () => {
   const { user } = useAuth();
-  const [items, setItems] = useState<Task[]>([]);
-  const [clients, setClients] = useState<Client[]>([]);
-  const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<Task["status"] | "">("");
   const [page, setPage] = useState(1);
-  const [pageCount, setPageCount] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
-  const loadBaseData = async () => {
-    const [clientsResult, opportunitiesResult] = await Promise.all([
-      clientsApi.list({ page: 1, pageSize: 100 }),
-      opportunitiesApi.list({ page: 1, pageSize: 100 })
-    ]);
+  const tasksQuery = useTasks({
+    page,
+    pageSize: PAGE_SIZE,
+    search: search || undefined,
+    status: status || undefined
+  });
+  const clientsQuery = useClients({ page: 1, pageSize: REFERENCE_PAGE_SIZE });
+  const opportunitiesQuery = useOpportunities({ page: 1, pageSize: REFERENCE_PAGE_SIZE });
+  const createTask = useCreateTask();
+  const updateTask = useUpdateTask();
 
-    setClients(clientsResult.items);
-    setOpportunities(opportunitiesResult.items);
-  };
-
-  const loadTasks = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const result = await tasksApi.list({
-        page,
-        pageSize: 8,
-        search,
-        status: status || undefined
-      });
-
-      setItems(result.items);
-      setPageCount(result.meta?.pageCount ?? 1);
-    } catch (error) {
-      setError(error instanceof ApiError ? error.message : "No se pudieron cargar las tareas");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadBaseData();
-  }, []);
-
-  useEffect(() => {
-    loadTasks();
-  }, [page, search, status]);
+  const items = tasksQuery.data?.items ?? [];
+  const pageCount = tasksQuery.data?.meta?.pageCount ?? 1;
+  const clients = clientsQuery.data?.items ?? [];
+  const opportunities = opportunitiesQuery.data?.items ?? [];
 
   const handleSubmit = async (values: TaskFormValues) => {
     const payload = emptyToUndefined(values);
 
     if (selectedTask) {
-      await tasksApi.update(selectedTask.id, payload);
+      await updateTask.mutateAsync({
+        id: selectedTask.id,
+        payload
+      });
     } else {
-      await tasksApi.create(payload);
+      await createTask.mutateAsync(payload);
     }
 
     setModalOpen(false);
     setSelectedTask(null);
-    await loadTasks();
   };
 
   const columns = useMemo(
@@ -150,11 +125,15 @@ export const TasksPage = () => {
     }).length;
 
     return [
-      { label: "Tareas visibles", value: String(items.length), hint: "Segmento actual de trabajo" },
+      {
+        label: "Tareas visibles",
+        value: String(items.length),
+        hint: tasksQuery.isFetching ? "Actualizando seguimiento" : "Segmento actual de trabajo"
+      },
       { label: "Pendientes", value: String(openItems), hint: `${urgentItems} urgentes` },
       { label: "Vencen pronto", value: String(dueSoon), hint: "Ventana de los proximos 3 dias" }
     ];
-  }, [items]);
+  }, [items, tasksQuery.isFetching]);
 
   return (
     <div className="space-y-6">
@@ -206,10 +185,21 @@ export const TasksPage = () => {
         </div>
       </Card>
 
-      {loading ? (
+      {tasksQuery.isLoading || clientsQuery.isLoading || opportunitiesQuery.isLoading ? (
         <Spinner />
-      ) : error ? (
-        <EmptyState title="No pudimos cargar tareas" description={error} />
+      ) : tasksQuery.isError || clientsQuery.isError || opportunitiesQuery.isError ? (
+        <EmptyState
+          title="No pudimos cargar tareas"
+          description={
+            tasksQuery.error instanceof Error
+              ? tasksQuery.error.message
+              : clientsQuery.error instanceof Error
+                ? clientsQuery.error.message
+                : opportunitiesQuery.error instanceof Error
+                  ? opportunitiesQuery.error.message
+                  : "Ha ocurrido un error inesperado"
+          }
+        />
       ) : items.length === 0 ? (
         <EmptyState
           title="No hay tareas con estos filtros"
@@ -217,6 +207,11 @@ export const TasksPage = () => {
         />
       ) : (
         <Card className="space-y-5">
+          {tasksQuery.isFetching ? (
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
+              Actualizando seguimiento...
+            </div>
+          ) : null}
           <Table columns={columns} data={items} rowKey={(item) => item.id} />
           <Pagination page={page} pageCount={pageCount} onPageChange={setPage} />
         </Card>

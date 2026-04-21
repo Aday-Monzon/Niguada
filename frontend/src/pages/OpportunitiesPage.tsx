@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useAuth } from "../app/providers/AuthProvider";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
@@ -12,77 +12,60 @@ import { Select } from "../components/ui/Select";
 import { Spinner } from "../components/ui/Spinner";
 import { StatusBadge } from "../components/ui/StatusBadge";
 import { Table } from "../components/ui/Table";
-import { clientsApi } from "../features/clients/api";
+import { useClients } from "../features/clients/hooks";
 import {
   OpportunityForm,
   OpportunityFormValues
 } from "../features/opportunities/components/OpportunityForm";
-import { opportunitiesApi } from "../features/opportunities/api";
-import { ApiError } from "../lib/api/client";
+import {
+  useCreateOpportunity,
+  useOpportunities,
+  useUpdateOpportunity
+} from "../features/opportunities/hooks";
 import { humanizeStatus, opportunityToneMap } from "../lib/constants/status";
 import { emptyToUndefined } from "../lib/utils/forms";
 import { formatCurrency, formatDate } from "../lib/utils/format";
-import { Client, Opportunity } from "../types/domain";
+import { Opportunity } from "../types/domain";
+
+const PAGE_SIZE = 8;
+const REFERENCE_PAGE_SIZE = 100;
 
 export const OpportunitiesPage = () => {
   const { user } = useAuth();
-  const [items, setItems] = useState<Opportunity[]>([]);
-  const [clients, setClients] = useState<Client[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [stage, setStage] = useState<Opportunity["stage"] | "">("");
   const [page, setPage] = useState(1);
-  const [pageCount, setPageCount] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedOpportunity, setSelectedOpportunity] = useState<Opportunity | null>(null);
 
-  const loadBaseData = async () => {
-    const clientsResult = await clientsApi.list({ page: 1, pageSize: 100 });
-    setClients(clientsResult.items);
-  };
+  const opportunitiesQuery = useOpportunities({
+    page,
+    pageSize: PAGE_SIZE,
+    search: search || undefined,
+    stage: stage || undefined
+  });
+  const clientsQuery = useClients({ page: 1, pageSize: REFERENCE_PAGE_SIZE });
+  const createOpportunity = useCreateOpportunity();
+  const updateOpportunity = useUpdateOpportunity();
 
-  const loadOpportunities = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const result = await opportunitiesApi.list({
-        page,
-        pageSize: 8,
-        search,
-        stage: stage || undefined
-      });
-
-      setItems(result.items);
-      setPageCount(result.meta?.pageCount ?? 1);
-    } catch (error) {
-      setError(error instanceof ApiError ? error.message : "No se pudieron cargar las oportunidades");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadBaseData();
-  }, []);
-
-  useEffect(() => {
-    loadOpportunities();
-  }, [page, search, stage]);
+  const items = opportunitiesQuery.data?.items ?? [];
+  const pageCount = opportunitiesQuery.data?.meta?.pageCount ?? 1;
+  const clients = clientsQuery.data?.items ?? [];
 
   const handleSubmit = async (values: OpportunityFormValues) => {
     const payload = emptyToUndefined(values);
 
     if (selectedOpportunity) {
-      await opportunitiesApi.update(selectedOpportunity.id, payload);
+      await updateOpportunity.mutateAsync({
+        id: selectedOpportunity.id,
+        payload
+      });
     } else {
-      await opportunitiesApi.create(payload);
+      await createOpportunity.mutateAsync(payload);
     }
 
     setModalOpen(false);
     setSelectedOpportunity(null);
-    await loadOpportunities();
   };
 
   const columns = useMemo(
@@ -147,11 +130,15 @@ export const OpportunitiesPage = () => {
       : 0;
 
     return [
-      { label: "Oportunidades", value: String(items.length), hint: "Items visibles en esta pagina" },
+      {
+        label: "Oportunidades",
+        value: String(items.length),
+        hint: opportunitiesQuery.isFetching ? "Actualizando pipeline" : "Items visibles en esta pagina"
+      },
       { label: "Pipeline visible", value: formatCurrency(pipelineValue), hint: `${negotiationCount} en negociacion` },
       { label: "Probabilidad media", value: `${avgProbability}%`, hint: "Lectura rapida del embudo" }
     ];
-  }, [items]);
+  }, [items, opportunitiesQuery.isFetching]);
 
   return (
     <div className="space-y-6">
@@ -205,10 +192,19 @@ export const OpportunitiesPage = () => {
         </div>
       </Card>
 
-      {loading ? (
+      {opportunitiesQuery.isLoading || clientsQuery.isLoading ? (
         <Spinner />
-      ) : error ? (
-        <EmptyState title="No pudimos cargar oportunidades" description={error} />
+      ) : opportunitiesQuery.isError || clientsQuery.isError ? (
+        <EmptyState
+          title="No pudimos cargar oportunidades"
+          description={
+            opportunitiesQuery.error instanceof Error
+              ? opportunitiesQuery.error.message
+              : clientsQuery.error instanceof Error
+                ? clientsQuery.error.message
+                : "Ha ocurrido un error inesperado"
+          }
+        />
       ) : items.length === 0 ? (
         <EmptyState
           title="No hay oportunidades para mostrar"
@@ -216,6 +212,11 @@ export const OpportunitiesPage = () => {
         />
       ) : (
         <Card className="space-y-5">
+          {opportunitiesQuery.isFetching ? (
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
+              Actualizando pipeline...
+            </div>
+          ) : null}
           <Table columns={columns} data={items} rowKey={(item) => item.id} />
           <Pagination page={page} pageCount={pageCount} onPageChange={setPage} />
         </Card>
