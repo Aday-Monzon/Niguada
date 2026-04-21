@@ -90,6 +90,40 @@ Sustituye estas imagenes por screenshots reales cuando publiques el repositorio.
 
 ## Como ejecutar el proyecto
 
+### Opcion recomendada: Docker Compose
+
+Levanta todo el stack con un solo comando:
+
+```bash
+docker compose up --build
+```
+
+Servicios disponibles:
+
+- frontend: `http://localhost:8080`
+- backend: `http://localhost:4000`
+- postgres: `localhost:5432`
+
+Para cargar datos demo:
+
+```bash
+docker compose exec backend npm run prisma:seed
+```
+
+Para detener el entorno:
+
+```bash
+docker compose down
+```
+
+Si quieres eliminar tambien el volumen de PostgreSQL:
+
+```bash
+docker compose down -v
+```
+
+### Opcion local sin Docker
+
 ### 1. Backend
 
 ```bash
@@ -210,6 +244,22 @@ Opciones recomendadas:
 - Supabase PostgreSQL
 
 La conexion final se pasa por `DATABASE_URL`.
+
+## Docker
+
+Archivos incluidos:
+
+- [docker-compose.yml](docker-compose.yml)
+- [backend/Dockerfile](backend/Dockerfile)
+- [frontend/Dockerfile](frontend/Dockerfile)
+- [frontend/nginx.conf](frontend/nginx.conf)
+
+Decisiones:
+
+- `PostgreSQL` corre como servicio independiente con volumen persistente
+- `backend` aplica migraciones al arrancar
+- `frontend` se compila con Vite y se sirve con Nginx
+- Nginx hace proxy de `/api` al backend para evitar problemas de CORS en entorno dockerizado
 
 ## Posibles mejoras futuras
 
