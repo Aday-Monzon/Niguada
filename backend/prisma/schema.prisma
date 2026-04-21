@@ -1,0 +1,165 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  EMPLOYEE
+}
+
+enum ClientStatus {
+  LEAD
+  ACTIVE
+  INACTIVE
+}
+
+enum OpportunityStage {
+  LEAD
+  QUALIFIED
+  PROPOSAL
+  NEGOTIATION
+  WON
+  LOST
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+  CANCELED
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+model User {
+  id                String        @id @default(uuid())
+  firstName         String
+  lastName          String
+  email             String        @unique
+  passwordHash      String
+  role              UserRole      @default(EMPLOYEE)
+  isActive          Boolean       @default(true)
+  lastLoginAt       DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  ownedClients      Client[]      @relation("ClientOwner")
+  ownedOpportunities Opportunity[] @relation("OpportunityOwner")
+  assignedTasks     Task[]        @relation("TaskAssignee")
+  createdTasks      Task[]        @relation("TaskCreator")
+  notes             Note[]
+}
+
+model Client {
+  id                String         @id @default(uuid())
+  companyName       String
+  contactName       String?
+  contactEmail      String?
+  contactPhone      String?
+  taxId             String?
+  website           String?
+  industry          String?
+  status            ClientStatus   @default(LEAD)
+  addressLine1      String?
+  addressLine2      String?
+  city              String?
+  state             String?
+  postalCode        String?
+  country           String?
+  annualRevenue     Decimal?       @db.Decimal(14, 2)
+  employeeCount     Int?
+  ownerId           String
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  owner             User           @relation("ClientOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  opportunities     Opportunity[]
+  tasks             Task[]
+  notes             Note[]
+
+  @@index([ownerId])
+  @@index([status])
+  @@index([companyName])
+}
+
+model Opportunity {
+  id                String           @id @default(uuid())
+  title             String
+  description       String?
+  stage             OpportunityStage @default(LEAD)
+  estimatedValue    Decimal          @db.Decimal(14, 2)
+  probability       Int              @default(10)
+  expectedCloseDate DateTime?
+  lostReason        String?
+  clientId          String
+  ownerId           String
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  client            Client           @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  owner             User             @relation("OpportunityOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  tasks             Task[]
+  notes             Note[]
+
+  @@index([clientId])
+  @@index([ownerId])
+  @@index([stage])
+  @@index([expectedCloseDate])
+}
+
+model Task {
+  id                String       @id @default(uuid())
+  title             String
+  description       String?
+  status            TaskStatus   @default(TODO)
+  priority          TaskPriority @default(MEDIUM)
+  dueDate           DateTime?
+  completedAt       DateTime?
+  clientId          String?
+  opportunityId     String?
+  assigneeId        String
+  createdById       String
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  client            Client?      @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  opportunity       Opportunity? @relation(fields: [opportunityId], references: [id], onDelete: SetNull)
+  assignee          User         @relation("TaskAssignee", fields: [assigneeId], references: [id], onDelete: Restrict)
+  createdBy         User         @relation("TaskCreator", fields: [createdById], references: [id], onDelete: Restrict)
+
+  @@index([clientId])
+  @@index([opportunityId])
+  @@index([assigneeId])
+  @@index([createdById])
+  @@index([status, priority])
+  @@index([dueDate])
+}
+
+model Note {
+  id                String       @id @default(uuid())
+  content           String       @db.Text
+  clientId          String?
+  opportunityId     String?
+  authorId          String
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  client            Client?      @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  opportunity       Opportunity? @relation(fields: [opportunityId], references: [id], onDelete: SetNull)
+  author            User         @relation(fields: [authorId], references: [id], onDelete: Restrict)
+
+  @@index([clientId])
+  @@index([opportunityId])
+  @@index([authorId])
+  @@index([createdAt])
+}
