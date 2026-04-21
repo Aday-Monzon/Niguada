@@ -1,118 +1,253 @@
-# Niguada
+# Niguada CRM
 
-Mini ERP/CRM full stack pensado como proyecto de portfolio profesional.
+Mini ERP/CRM full stack construido como proyecto de portfolio profesional. La idea es enseñar criterio de arquitectura, experiencia construyendo producto y capacidad para conectar una API modular con una interfaz moderna y usable.
 
-## Objetivo de esta fase
+## Demo del proyecto
 
-Definir una base técnica sólida antes de desarrollar pantallas, endpoints o lógica de negocio completa.
+Niguada incluye:
+
+- autenticacion con JWT
+- dashboard de ventas y operacion
+- gestion de clientes
+- pipeline de oportunidades
+- seguimiento de tareas
+- Prisma + PostgreSQL en backend
+- React + TypeScript + Vite + Tailwind en frontend
 
 ## Stack
 
-- Frontend: React + TypeScript + Vite + React Router + Tailwind CSS
-- Backend: Node.js + Express + TypeScript
-- Base de datos: PostgreSQL + Prisma
+### Frontend
 
-## Estructura propuesta
+- React
+- TypeScript
+- Vite
+- Tailwind CSS
+- React Router
+- React Hook Form
+- Zod
+
+### Backend
+
+- Node.js
+- Express
+- TypeScript
+- Prisma
+- PostgreSQL
+- JWT
+
+## Capturas
+
+Sustituye estas imagenes por screenshots reales cuando publiques el repositorio.
+
+![Login placeholder](docs/screenshots/login-placeholder.svg)
+![Dashboard placeholder](docs/screenshots/dashboard-placeholder.svg)
+![CRM placeholder](docs/screenshots/crm-placeholder.svg)
+
+## Estructura
 
 ```text
 /
 |-- frontend/
-|   |-- public/
 |   |-- src/
 |   |   |-- app/
-|   |   |   |-- providers/
-|   |   |   |-- router/
-|   |   |   `-- store/
-|   |   |-- assets/
 |   |   |-- components/
-|   |   |   |-- ui/
-|   |   |   |-- forms/
-|   |   |   |-- layout/
-|   |   |   `-- feedback/
 |   |   |-- features/
-|   |   |   |-- auth/
-|   |   |   |-- dashboard/
-|   |   |   |-- clients/
-|   |   |   |-- opportunities/
-|   |   |   |-- tasks/
-|   |   |   `-- notes/
-|   |   |-- hooks/
 |   |   |-- lib/
-|   |   |   |-- api/
-|   |   |   |-- utils/
-|   |   |   `-- constants/
 |   |   |-- pages/
 |   |   |-- styles/
-|   |   |-- types/
-|   |   |-- App.tsx
-|   |   `-- main.tsx
-|   |-- package.json
-|   |-- tsconfig.json
-|   `-- vite.config.ts
+|   |   `-- types/
+|   |-- .env.example
+|   `-- package.json
 |-- backend/
 |   |-- prisma/
-|   |   `-- schema.prisma
+|   |   |-- migrations/
+|   |   |-- schema.prisma
+|   |   `-- seed.ts
 |   |-- src/
-|   |   |-- config/
 |   |   |-- common/
-|   |   |   |-- middleware/
-|   |   |   |-- errors/
-|   |   |   `-- utils/
+|   |   |-- config/
+|   |   |-- lib/
 |   |   |-- modules/
-|   |   |   |-- auth/
-|   |   |   |-- users/
-|   |   |   |-- clients/
-|   |   |   |-- opportunities/
-|   |   |   |-- tasks/
-|   |   |   `-- notes/
-|   |   |-- routes/
-|   |   |-- services/
-|   |   |-- app.ts
-|   |   `-- server.ts
-|   |-- package.json
-|   `-- tsconfig.json
-|-- docs/
-|   `-- architecture.md
-`-- .env.example
+|   |   `-- routes/
+|   |-- .env.example
+|   `-- package.json
+`-- docs/
+    |-- architecture.md
+    `-- screenshots/
 ```
 
-## Resumen de arquitectura
+## Funcionalidades actuales
 
-- El frontend consume una API REST del backend mediante `fetch` o una capa `api client` centralizada.
-- La autenticacion se resuelve con `access token` de corta vida y `refresh token` seguro en cookie httpOnly.
-- React Router separa rutas publicas y privadas.
-- Cada dominio vive en un modulo consistente en frontend y backend: `clients`, `opportunities`, `tasks`, `notes`.
-- Prisma centraliza el acceso a PostgreSQL y mantiene el modelo de datos alineado con negocio.
+- login y persistencia de sesion
+- rutas protegidas en frontend
+- middleware de autenticacion y roles en backend
+- CRUD REST de clientes
+- CRUD REST de oportunidades
+- CRUD REST de tareas
+- CRUD REST de notas en backend
+- filtros, busqueda y paginacion simple en frontend
+- seed de datos para demo local
 
-## Flujo de autenticacion
+## Como ejecutar el proyecto
 
-1. El usuario inicia sesion con email y password.
-2. El backend valida credenciales y devuelve el `access token`.
-3. El `refresh token` se almacena en cookie segura.
-4. El frontend guarda el estado de sesion en un store ligero y adjunta el `access token` a cada request.
-5. Si el token expira, el frontend intenta renovarlo con `/auth/refresh`.
-6. Si falla la renovacion, la sesion se cierra y el usuario vuelve a login.
+### 1. Backend
 
-## Modulos funcionales
+```bash
+cd backend
+cp .env.example .env
+npm install
+npm run prisma:generate
+npm run prisma:migrate
+npm run prisma:seed
+npm run dev
+```
 
-- `auth`: login, refresh, logout, perfil actual.
-- `users`: administracion interna de usuarios y roles.
-- `clients`: ficha del cliente, contacto, estado, responsable.
-- `opportunities`: pipeline comercial, valor estimado, probabilidad, cierre esperado.
-- `tasks`: seguimiento operativo y comercial, vencimientos, asignacion, prioridad.
-- `notes`: notas cronologicas asociadas a clientes u oportunidades.
+El backend queda disponible en `http://localhost:4000`.
 
-## Estado en frontend
+### 2. Frontend
 
-- Estado remoto: gestionado por una capa de consultas centralizada por feature.
-- Estado de sesion: store global pequeno para usuario autenticado, tokens y permisos.
-- Estado de UI: local por componente o por pagina, evitando globalizar formularios y filtros si no hace falta.
+```bash
+cd frontend
+cp .env.example .env
+npm install
+npm run dev
+```
 
-## Escalabilidad
+El frontend queda disponible en `http://localhost:5173`.
 
-- La estructura por modulos reduce acoplamiento y facilita crecer a facturacion, proyectos o inventario.
-- Prisma permite evolucionar el schema con migraciones controladas.
-- El backend puede separar servicios por dominio antes de necesitar microservicios.
-- El frontend puede incorporar cache de servidor y layouts por area sin rehacer la base.
+## Variables de entorno
 
-Consulta el detalle en [docs/architecture.md](docs/architecture.md) y el modelo de datos en [backend/prisma/schema.prisma](backend/prisma/schema.prisma).
+### Backend
+
+Archivo: `backend/.env`
+
+```env
+PORT=4000
+NODE_ENV=development
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/niguada"
+JWT_SECRET="change-me-super-secret"
+JWT_EXPIRES_IN="1d"
+CORS_ORIGIN="http://localhost:5173"
+```
+
+### Frontend
+
+Archivo: `frontend/.env`
+
+```env
+VITE_API_URL=http://localhost:4000/api/v1
+```
+
+## Credenciales de demo
+
+- Admin: `admin@niguada.dev` / `Admin123!`
+- Employee: `sara@niguada.dev` / `Employee123!`
+- Employee: `diego@niguada.dev` / `Employee123!`
+
+## Decisiones tecnicas
+
+### Arquitectura modular
+
+El backend esta separado por dominios (`auth`, `clients`, `opportunities`, `tasks`, `notes`) para que la aplicacion pueda crecer sin mezclar reglas de negocio, transporte HTTP y persistencia.
+
+### API centralizada en frontend
+
+Toda la comunicacion con el backend pasa por un cliente HTTP comun. Esto simplifica el manejo de errores, el envio del token y posibles cambios futuros como refresh tokens o interceptores mas avanzados.
+
+### Formularios con validacion tipada
+
+Se usa `react-hook-form` con `zod` para mantener formularios declarativos y coherentes con la validacion del backend.
+
+### Prisma como capa de datos
+
+Prisma permite mantener un schema legible, seed reproducible y una base preparada para evolucionar a nuevas entidades como invoices, projects o products.
+
+### UI pensada como producto
+
+El frontend no intenta parecer una demo tutorial. Se ha priorizado una interfaz tipo SaaS, con jerarquia visual clara, metricas, modales reutilizables y tablas con estados vacios, errores y carga.
+
+## Deploy recomendado
+
+### Frontend en Vercel
+
+1. Importa el repositorio en Vercel.
+2. Selecciona `frontend` como root directory.
+3. Configura la variable `VITE_API_URL`.
+4. Usa el comando de build:
+
+```bash
+npm run build
+```
+
+5. Usa como output directory:
+
+```bash
+dist
+```
+
+### Backend en Railway o Render
+
+1. Crea un nuevo servicio desde el mismo repositorio.
+2. Selecciona `backend` como root directory.
+3. Configura variables de entorno del backend.
+4. Usa:
+
+```bash
+npm install
+npm run prisma:generate
+npm run prisma:deploy
+npm run build
+npm run start
+```
+
+### Base de datos
+
+Opciones recomendadas:
+
+- Railway PostgreSQL
+- Render PostgreSQL
+- Neon
+- Supabase PostgreSQL
+
+La conexion final se pasa por `DATABASE_URL`.
+
+## Posibles mejoras futuras
+
+### Producto
+
+- modulo de notas en frontend
+- timeline por cliente y oportunidad
+- dashboard con metricas historicas reales
+- activity feed y auditoria
+- perfiles de usuario y preferencias
+
+### Escalabilidad
+
+- query cache con TanStack Query
+- refresh tokens reales con cookie `httpOnly`
+- DTOs compartidos entre frontend y backend
+- paginacion y filtros mas robustos
+- soft delete y trazabilidad
+
+### Calidad
+
+- tests unitarios de servicios backend
+- tests de componentes y flujos criticos en frontend
+- tests E2E con Playwright
+- linting y formatting automatizados
+- pipeline CI para build y checks
+
+## Proyecto listo para portfolio
+
+Niguada esta pensado para enseñar en entrevistas:
+
+- capacidad de disenar arquitectura full stack
+- criterio de modelado de datos
+- experiencia construyendo dashboards y CRUDs reales
+- cuidado por DX, UX y documentacion
+
+## Documentacion adicional
+
+- Arquitectura inicial: [docs/architecture.md](docs/architecture.md)
+- Backend: [backend/README.md](backend/README.md)
+- Frontend: [frontend/README.md](frontend/README.md)
