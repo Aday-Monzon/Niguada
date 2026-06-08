@@ -60,4 +60,4 @@ La API se consume desde `src/lib/api/client.ts` y la sesion se gestiona en `src/
 
 ## Credenciales de ejemplo
 
-- `admin@niguada.dev` / `Admin123!`
+Las credenciales de demo se configuran en las variables `SEED_*` del backend.

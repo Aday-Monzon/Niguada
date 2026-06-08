@@ -9,6 +9,7 @@ import {
   type LucideIcon
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
+import { PintaderaLogo } from "../brand/PintaderaLogo";
 import { navigationItems } from "../../lib/constants/navigation";
 import { cn } from "../../lib/utils/cn";
 
@@ -47,7 +48,7 @@ export const Sidebar = ({
         <div className="mb-6 flex items-center justify-between gap-3 px-2">
           <div className="flex min-w-0 items-center gap-3">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-950 text-sm font-bold text-white">
-              N
+              <PintaderaLogo className="h-[22px] w-[22px] text-white" />
             </div>
             {showLabels ? (
               <div className="min-w-0">

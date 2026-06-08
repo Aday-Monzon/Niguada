@@ -54,8 +54,8 @@ export const ClientForm = ({ initialValues, ownerId, onSubmit, onCancel }: Clien
   });
 
   return (
-    <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
-      <div className="grid gap-4 md:grid-cols-2">
+    <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
+      <div className="grid gap-5 md:grid-cols-2">
         <FormField label="Empresa" error={errors.companyName?.message}>
           <Input {...register("companyName")} placeholder="Acme Logistics" />
         </FormField>
@@ -89,7 +89,7 @@ export const ClientForm = ({ initialValues, ownerId, onSubmit, onCancel }: Clien
         </FormField>
       </div>
 
-      <div className="flex justify-end gap-3 pt-3">
+      <div className="flex justify-end gap-3 border-t border-zinc-100 pt-5">
         <Button type="button" variant="ghost" onClick={onCancel} disabled={isSubmitting}>
           Cancelar
         </Button>

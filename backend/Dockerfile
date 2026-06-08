@@ -1,4 +1,4 @@
-FROM node:18-alpine
+FROM node:18-bullseye-slim
 
 WORKDIR /app
 
@@ -9,8 +9,9 @@ COPY prisma ./prisma
 COPY src ./src
 COPY tsconfig.json ./
 
+RUN npm run prisma:generate
 RUN npm run build
 
 EXPOSE 4000
 
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/src/server.js"]
+CMD ["npm", "run", "docker:start"]

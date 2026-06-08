@@ -28,8 +28,8 @@ export const LoginForm = () => {
   } = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: "admin@niguada.dev",
-      password: "Admin123!"
+      email: "",
+      password: ""
     }
   });
 
@@ -45,7 +45,7 @@ export const LoginForm = () => {
   };
 
   return (
-    <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>
+    <form className="space-y-5" noValidate onSubmit={handleSubmit(onSubmit)}>
       <div className="space-y-4">
         <FormField label="Email" error={errors.email?.message}>
           <Input

@@ -1,7 +1,11 @@
 import { ApiEnvelope, PaginatedResult } from "../../types/api";
 import { tokenStorage } from "../auth/token-storage";
 
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000/api/v1";
+const API_URL = import.meta.env.VITE_API_URL;
+
+if (!API_URL) {
+  throw new Error("Missing VITE_API_URL environment variable");
+}
 
 type RequestOptions = RequestInit & {
   auth?: boolean;
@@ -22,7 +26,11 @@ export class ApiError extends Error {
 }
 
 const buildUrl = (path: string, query?: RequestOptions["query"]) => {
-  const url = new URL(`${API_URL}${path}`);
+  const baseUrl =
+    API_URL.startsWith("http://") || API_URL.startsWith("https://")
+      ? API_URL
+      : `${window.location.origin}${API_URL}`;
+  const url = new URL(`${baseUrl}${path}`);
 
   if (query) {
     Object.entries(query).forEach(([key, value]) => {
@@ -65,6 +73,7 @@ export const apiClient = {
   async request<T>(path: string, options: RequestOptions = {}): Promise<ApiEnvelope<T>> {
     const token = tokenStorage.get();
     const headers = new Headers(options.headers);
+    const url = buildUrl(path, options.query);
 
     if (!(options.body instanceof FormData)) {
       headers.set("Content-Type", "application/json");
@@ -74,7 +83,7 @@ export const apiClient = {
       headers.set("Authorization", `Bearer ${token}`);
     }
 
-    const response = await fetch(buildUrl(path, options.query), {
+    const response = await fetch(url, {
       ...options,
       headers
     });

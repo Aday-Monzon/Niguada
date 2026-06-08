@@ -17,26 +17,26 @@ type TableProps<T> = {
 
 export const Table = <T,>({ columns, data, rowKey, className }: TableProps<T>) => {
   return (
-    <div className={cn("overflow-hidden rounded-3xl border border-slate-200", className)}>
+    <div className={cn("overflow-hidden rounded-xl border border-zinc-200/80 bg-white shadow-sm", className)}>
       <div className="overflow-x-auto">
         <table className="min-w-full bg-white">
-          <thead>
-            <tr className="bg-slate-50">
+          <thead className="bg-zinc-50">
+            <tr>
               {columns.map((column) => (
                 <th
                   key={column.key}
-                  className="px-4 py-3 text-left text-xs font-bold uppercase tracking-[0.25em] text-slate-500"
+                  className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500"
                 >
                   {column.header}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-zinc-100">
             {data.map((item) => (
-              <tr key={rowKey(item)} className="border-t border-slate-100">
+              <tr key={rowKey(item)} className="transition-colors hover:bg-zinc-50">
                 {columns.map((column) => (
-                  <td key={column.key} className={cn("px-4 py-4 text-sm text-slate-700", column.className)}>
+                  <td key={column.key} className={cn("px-4 py-4 text-sm text-zinc-700", column.className)}>
                     {column.render(item)}
                   </td>
                 ))}

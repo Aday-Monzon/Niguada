@@ -25,9 +25,9 @@ export const ConfirmDialog = ({
   return (
     <Modal open={open} title={title} onClose={onClose}>
       <div className="space-y-6">
-        <p className="text-sm leading-6 text-slate-600">{description}</p>
+        <p className="text-sm leading-6 text-zinc-600">{description}</p>
 
-        <div className="flex justify-end gap-3">
+        <div className="flex justify-end gap-3 border-t border-zinc-100 pt-5">
           <Button type="button" variant="ghost" onClick={onClose} disabled={busy}>
             {cancelLabel}
           </Button>

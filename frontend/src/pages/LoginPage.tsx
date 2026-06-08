@@ -1,3 +1,4 @@
+import { PintaderaLogo } from "../components/brand/PintaderaLogo";
 import { LoginForm } from "../features/auth/components/LoginForm";
 
 export const LoginPage = () => {
@@ -6,7 +7,7 @@ export const LoginPage = () => {
       <section className="w-full max-w-md rounded-2xl border border-zinc-200/80 bg-white p-8 shadow-sm md:p-10">
         <div className="mb-8 text-center">
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-950 text-base font-bold text-white shadow-sm">
-            N
+            <PintaderaLogo className="h-7 w-7 text-white" />
           </div>
           <p className="mt-5 text-xs font-semibold uppercase tracking-[0.22em] text-zinc-500">Niguada CRM</p>
           <h1 className="mt-3 font-display text-3xl font-bold tracking-normal text-slate-950">

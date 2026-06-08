@@ -37,9 +37,9 @@ Niguada incluye:
 
 ## Capturas
 
-![Login placeholder](docs/screenshots/login-placeholder.svg)
-![Dashboard placeholder](docs/screenshots/dashboard-placeholder.svg)
-![CRM placeholder](docs/screenshots/crm-placeholder.svg)
+![Login](docs/screenshots/login.png)
+![Dashboard](docs/screenshots/dashboard.png)
+![CRM](docs/screenshots/crm.png)
 
 ## Estructura
 
@@ -60,6 +60,7 @@ Niguada incluye:
 |   |-- prisma/
 |   |   |-- migrations/
 |   |   |-- schema.prisma
+|   |   |-- seed-if-empty.ts
 |   |   `-- seed.ts
 |   |-- src/
 |   |   |-- common/
@@ -90,23 +91,23 @@ Niguada incluye:
 
 ### Opcion recomendada: Docker Compose
 
-Levanta todo el stack con un solo comando:
+Prepara las variables de entorno y levanta todo el stack:
+
+```bash
+cp .env.example .env
+```
 
 ```bash
 docker compose up --build
 ```
+
+En el primer arranque, el backend espera a PostgreSQL, ejecuta `prisma migrate deploy` y carga automaticamente los datos demo si la base esta vacia.
 
 Servicios disponibles:
 
 - frontend: `http://localhost:8080`
 - backend: `http://localhost:4000`
 - postgres: `localhost:5432`
-
-Para cargar datos demo:
-
-```bash
-docker compose exec backend npm run prisma:seed
-```
 
 Para detener el entorno:
 
@@ -156,10 +157,15 @@ Archivo: `backend/.env`
 ```env
 PORT=4000
 NODE_ENV=development
-DATABASE_URL="postgresql://postgres:postgres@localhost:5432/niguada"
-JWT_SECRET="change-me-super-secret"
+DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/DATABASE"
+JWT_SECRET="replace-with-a-long-random-secret"
 JWT_EXPIRES_IN="1d"
 CORS_ORIGIN="http://localhost:5173"
+SEED_ADMIN_EMAIL="admin@example.com"
+SEED_ADMIN_PASSWORD="replace-with-demo-admin-password"
+SEED_EMPLOYEE_EMAIL="employee@example.com"
+SEED_SECOND_EMPLOYEE_EMAIL="employee2@example.com"
+SEED_EMPLOYEE_PASSWORD="replace-with-demo-employee-password"
 ```
 
 ### Frontend
@@ -167,14 +173,12 @@ CORS_ORIGIN="http://localhost:5173"
 Archivo: `frontend/.env`
 
 ```env
-VITE_API_URL=http://localhost:4000/api/v1
+VITE_API_URL=/api/v1
 ```
 
 ## Credenciales de demo
 
-- Admin: `admin@niguada.dev` / `Admin123!`
-- Employee: `sara@niguada.dev` / `Employee123!`
-- Employee: `diego@niguada.dev` / `Employee123!`
+Las credenciales demo se definen en variables `SEED_*` dentro del `.env` usado por Docker o backend local.
 
 ## Decisiones tecnicas
 

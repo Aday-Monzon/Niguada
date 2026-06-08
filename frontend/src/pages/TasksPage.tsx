@@ -82,9 +82,9 @@ export const TasksPage = () => {
         key: "title",
         header: "Tarea",
         render: (item: Task) => (
-          <div>
-            <p className="font-semibold text-slate-900">{item.title}</p>
-            <p className="text-xs text-slate-500">
+          <div className="min-w-0">
+            <p className="break-words font-semibold text-slate-900">{item.title}</p>
+            <p className="break-words text-xs text-slate-500">
               {item.client?.companyName ?? "Sin cliente"} | {item.assignee.firstName}
             </p>
           </div>
@@ -110,7 +110,7 @@ export const TasksPage = () => {
         header: "",
         className: "text-right",
         render: (item: Task) => (
-          <div className="flex justify-end gap-2">
+          <div className="flex flex-wrap justify-end gap-2">
             <Button
               variant="ghost"
               onClick={() => {

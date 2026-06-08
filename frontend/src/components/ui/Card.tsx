@@ -6,5 +6,5 @@ type CardProps = PropsWithChildren<{
 }>;
 
 export const Card = ({ children, className }: CardProps) => {
-  return <section className={cn("glass-panel p-5", className)}>{children}</section>;
+  return <section className={cn("glass-panel min-w-0 overflow-hidden p-5 sm:p-6", className)}>{children}</section>;
 };

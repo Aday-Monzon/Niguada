@@ -80,9 +80,9 @@ export const ClientsPage = () => {
         key: "company",
         header: "Empresa",
         render: (item: Client) => (
-          <div>
-            <p className="font-semibold text-slate-900">{item.companyName}</p>
-            <p className="text-xs text-slate-500">{item.industry ?? "Industria no definida"}</p>
+          <div className="min-w-0">
+            <p className="break-words font-semibold text-slate-900">{item.companyName}</p>
+            <p className="break-words text-xs text-slate-500">{item.industry ?? "Industria no definida"}</p>
           </div>
         )
       },
@@ -90,9 +90,9 @@ export const ClientsPage = () => {
         key: "contact",
         header: "Contacto",
         render: (item: Client) => (
-          <div>
-            <p>{item.contactName ?? "Sin contacto"}</p>
-            <p className="text-xs text-slate-500">{item.contactEmail ?? "Sin email"}</p>
+          <div className="min-w-0">
+            <p className="break-words">{item.contactName ?? "Sin contacto"}</p>
+            <p className="break-all text-xs text-slate-500">{item.contactEmail ?? "Sin email"}</p>
           </div>
         )
       },
@@ -120,7 +120,7 @@ export const ClientsPage = () => {
         header: "",
         className: "text-right",
         render: (item: Client) => (
-          <div className="flex justify-end gap-2">
+          <div className="flex flex-wrap justify-end gap-2">
             <Button
               variant="ghost"
               onClick={() => {

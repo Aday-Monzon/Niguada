@@ -11,6 +11,7 @@ backend/
 |   |   `-- 20260421195500_init/
 |   |       `-- migration.sql
 |   |-- schema.prisma
+|   |-- seed-if-empty.ts
 |   `-- seed.ts
 |-- src/
 |   |-- common/
@@ -78,8 +79,8 @@ POST /api/v1/auth/login
 Content-Type: application/json
 
 {
-  "email": "admin@niguada.dev",
-  "password": "Admin123!"
+  "email": "<SEED_ADMIN_EMAIL>",
+  "password": "<SEED_ADMIN_PASSWORD>"
 }
 ```
 
@@ -101,6 +102,8 @@ Content-Type: application/json
 
 ## Levantar el backend
 
+Con Docker Compose, el contenedor ejecuta automaticamente `prisma migrate deploy` y despues `prisma:seed:if-empty` antes de iniciar la API.
+
 1. Copia `backend/.env.example` a `backend/.env`
 2. Ajusta `DATABASE_URL` y `JWT_SECRET`
 3. Instala dependencias con `npm install`
@@ -111,6 +114,10 @@ Content-Type: application/json
 
 ## Credenciales seed
 
-- Admin: `admin@niguada.dev` / `Admin123!`
-- Employee: `sara@niguada.dev` / `Employee123!`
-- Employee: `diego@niguada.dev` / `Employee123!`
+Las credenciales seed se configuran con variables `SEED_*` en el `.env`:
+
+- `SEED_ADMIN_EMAIL`
+- `SEED_ADMIN_PASSWORD`
+- `SEED_EMPLOYEE_EMAIL`
+- `SEED_SECOND_EMPLOYEE_EMAIL`
+- `SEED_EMPLOYEE_PASSWORD`

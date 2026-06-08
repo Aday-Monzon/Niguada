@@ -22,29 +22,29 @@ type StatusBadgeProps = {
 };
 
 const palette: Record<StatusBadgeProps["tone"], string> = {
-  lead: "bg-slate-100 text-slate-600",
-  active: "bg-emerald-100 text-emerald-700",
-  inactive: "bg-slate-200 text-slate-600",
-  qualified: "bg-sky-100 text-sky-700",
-  proposal: "bg-indigo-100 text-indigo-700",
-  negotiation: "bg-amber-100 text-amber-700",
-  won: "bg-emerald-100 text-emerald-700",
-  lost: "bg-rose-100 text-rose-700",
-  todo: "bg-slate-100 text-slate-600",
-  progress: "bg-sky-100 text-sky-700",
-  done: "bg-emerald-100 text-emerald-700",
-  canceled: "bg-rose-100 text-rose-700",
-  low: "bg-slate-100 text-slate-600",
-  medium: "bg-amber-100 text-amber-700",
-  high: "bg-orange-100 text-orange-700",
-  urgent: "bg-rose-100 text-rose-700"
+  lead: "border-zinc-200 bg-zinc-50 text-zinc-700",
+  active: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  inactive: "border-zinc-200 bg-zinc-100/70 text-zinc-600",
+  qualified: "border-sky-200 bg-sky-50 text-sky-700",
+  proposal: "border-indigo-200 bg-indigo-50 text-indigo-700",
+  negotiation: "border-amber-200 bg-amber-50 text-amber-700",
+  won: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  lost: "border-rose-200 bg-rose-50 text-rose-700",
+  todo: "border-zinc-200 bg-zinc-50 text-zinc-700",
+  progress: "border-sky-200 bg-sky-50 text-sky-700",
+  done: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  canceled: "border-rose-200 bg-rose-50 text-rose-700",
+  low: "border-zinc-200 bg-zinc-50 text-zinc-700",
+  medium: "border-amber-200 bg-amber-50 text-amber-700",
+  high: "border-orange-200 bg-orange-50 text-orange-700",
+  urgent: "border-rose-200 bg-rose-50 text-rose-700"
 };
 
 export const StatusBadge = ({ tone, label }: StatusBadgeProps) => {
   return (
     <span
       className={cn(
-        "inline-flex rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide",
+        "inline-flex rounded-full border px-2.5 py-1 text-xs font-medium uppercase tracking-wide",
         palette[tone]
       )}
     >

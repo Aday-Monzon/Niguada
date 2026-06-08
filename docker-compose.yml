@@ -3,11 +3,11 @@ services:
     image: postgres:16-alpine
     container_name: niguada-postgres
     environment:
-      POSTGRES_DB: niguada
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is required}
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:?POSTGRES_PORT is required}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -21,28 +21,33 @@ services:
       context: ./backend
     container_name: niguada-backend
     environment:
-      PORT: 4000
-      NODE_ENV: production
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/niguada
-      JWT_SECRET: change-me-super-secret
-      JWT_EXPIRES_IN: 1d
-      CORS_ORIGIN: http://localhost:8080
+      PORT: ${BACKEND_PORT:?BACKEND_PORT is required}
+      NODE_ENV: ${NODE_ENV:?NODE_ENV is required}
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:?JWT_EXPIRES_IN is required}
+      CORS_ORIGIN: ${CORS_ORIGIN:?CORS_ORIGIN is required}
+      SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:?SEED_ADMIN_EMAIL is required}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:?SEED_ADMIN_PASSWORD is required}
+      SEED_EMPLOYEE_EMAIL: ${SEED_EMPLOYEE_EMAIL:?SEED_EMPLOYEE_EMAIL is required}
+      SEED_SECOND_EMPLOYEE_EMAIL: ${SEED_SECOND_EMPLOYEE_EMAIL:?SEED_SECOND_EMPLOYEE_EMAIL is required}
+      SEED_EMPLOYEE_PASSWORD: ${SEED_EMPLOYEE_PASSWORD:?SEED_EMPLOYEE_PASSWORD is required}
     depends_on:
       postgres:
         condition: service_healthy
     ports:
-      - "4000:4000"
+      - "${BACKEND_PORT:?BACKEND_PORT is required}:4000"
 
   frontend:
     build:
       context: ./frontend
       args:
-        VITE_API_URL: /api/v1
+        VITE_API_URL: ${VITE_API_URL:?VITE_API_URL is required}
     container_name: niguada-frontend
     depends_on:
       - backend
     ports:
-      - "8080:80"
+      - "${FRONTEND_PORT:?FRONTEND_PORT is required}:80"
 
 volumes:
   postgres_data:

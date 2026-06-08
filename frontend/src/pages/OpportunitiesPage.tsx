@@ -87,9 +87,9 @@ export const OpportunitiesPage = () => {
         key: "title",
         header: "Oportunidad",
         render: (item: Opportunity) => (
-          <div>
-            <p className="font-semibold text-slate-900">{item.title}</p>
-            <p className="text-xs text-slate-500">{item.client.companyName}</p>
+          <div className="min-w-0">
+            <p className="break-words font-semibold text-slate-900">{item.title}</p>
+            <p className="break-words text-xs text-slate-500">{item.client.companyName}</p>
           </div>
         )
       },
@@ -104,8 +104,8 @@ export const OpportunitiesPage = () => {
         key: "value",
         header: "Valor",
         render: (item: Opportunity) => (
-          <div>
-            <p className="font-semibold text-slate-900">{formatCurrency(item.estimatedValue)}</p>
+          <div className="min-w-0">
+            <p className="break-words font-semibold text-slate-900">{formatCurrency(item.estimatedValue)}</p>
             <p className="text-xs text-slate-500">{item.probability}% probabilidad</p>
           </div>
         )
@@ -120,7 +120,7 @@ export const OpportunitiesPage = () => {
         header: "",
         className: "text-right",
         render: (item: Opportunity) => (
-          <div className="flex justify-end gap-2">
+          <div className="flex flex-wrap justify-end gap-2">
             <Button
               variant="ghost"
               onClick={() => {

@@ -56,8 +56,8 @@ export const OpportunityForm = ({
   });
 
   return (
-    <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
-      <div className="grid gap-4 md:grid-cols-2">
+    <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
+      <div className="grid gap-5 md:grid-cols-2">
         <FormField label="Titulo" error={errors.title?.message}>
           <Input {...register("title")} placeholder="CRM rollout Q3" />
         </FormField>
@@ -97,7 +97,7 @@ export const OpportunityForm = ({
       <FormField label="Motivo de perdida" error={errors.lostReason?.message}>
         <Input {...register("lostReason")} placeholder="Solo si aplica" />
       </FormField>
-      <div className="flex justify-end gap-3 pt-3">
+      <div className="flex justify-end gap-3 border-t border-zinc-100 pt-5">
         <Button type="button" variant="ghost" onClick={onCancel} disabled={isSubmitting}>
           Cancelar
         </Button>
