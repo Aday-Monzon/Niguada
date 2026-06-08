@@ -1,6 +1,7 @@
+import { CalendarDays, LogOut, Menu, UserCircle } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "../../app/providers/AuthProvider";
-import { Button } from "../ui/Button";
+import { cn } from "../../lib/utils/cn";
 
 const pageTitles: Record<string, string> = {
   "/dashboard": "Dashboard",
@@ -23,37 +24,49 @@ export const Topbar = ({ onToggleSidebar }: TopbarProps) => {
   }).format(new Date());
 
   return (
-    <header className="sticky top-0 z-20 flex items-center justify-between border-b border-white/60 bg-white/75 px-4 py-4 backdrop-blur md:px-8">
-      <div className="flex items-center gap-3">
+    <header className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 rounded-2xl border border-zinc-200 bg-white/85 px-4 py-3 shadow-sm backdrop-blur md:px-5">
+      <div className="flex min-w-0 items-center gap-3">
         <button
           type="button"
-          className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 md:hidden"
+          className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-zinc-200 bg-white text-zinc-600 transition hover:bg-zinc-100 hover:text-slate-950 md:hidden"
           onClick={onToggleSidebar}
+          aria-label="Abrir menu"
         >
-          Menu
+          <Menu className="h-5 w-5" strokeWidth={1.9} />
         </button>
-        <div>
-          <p className="text-xs uppercase tracking-[0.35em] text-slate-400">Workspace</p>
-          <h2 className="font-display text-2xl font-bold text-slate-900">
+        <div className="min-w-0">
+          <p className="text-xs font-medium uppercase tracking-[0.18em] text-zinc-400">Workspace</p>
+          <h2 className="truncate font-display text-xl font-semibold text-slate-950 md:text-2xl">
             {pageTitles[location.pathname] ?? "Niguada CRM"}
           </h2>
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
-        <div className="hidden rounded-2xl border border-slate-200 bg-white px-4 py-2 text-right md:block">
-          <p className="text-xs uppercase tracking-[0.25em] text-slate-400">Hoy</p>
-          <p className="text-sm font-semibold text-slate-800">{today}</p>
+      <div className="flex shrink-0 items-center gap-2">
+        <div className="hidden items-center gap-2 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm font-medium text-zinc-600 lg:flex">
+          <CalendarDays className="h-4 w-4" strokeWidth={1.9} />
+          <span>{today}</span>
         </div>
-        <div className="hidden rounded-2xl bg-slate-100 px-4 py-2 text-right md:block">
-          <p className="text-sm font-semibold text-slate-800">
-            {user?.firstName} {user?.lastName}
-          </p>
-          <p className="text-xs uppercase tracking-[0.25em] text-slate-400">{user?.role}</p>
+        <div className="hidden items-center gap-2 rounded-xl bg-zinc-100 px-3 py-2 md:flex">
+          <UserCircle className="h-4 w-4 text-zinc-500" strokeWidth={1.9} />
+          <div className="text-right leading-tight">
+            <p className="text-sm font-semibold text-slate-900">
+              {user?.firstName} {user?.lastName}
+            </p>
+            <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-zinc-500">{user?.role}</p>
+          </div>
         </div>
-        <Button variant="ghost" onClick={logout}>
-          Salir
-        </Button>
+        <button
+          type="button"
+          onClick={logout}
+          className={cn(
+            "inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-zinc-200 bg-white px-3 text-sm font-semibold text-zinc-700 transition",
+            "hover:bg-zinc-100 hover:text-slate-950"
+          )}
+        >
+          <LogOut className="h-4 w-4" strokeWidth={1.9} />
+          <span className="hidden sm:inline">Salir</span>
+        </button>
       </div>
     </header>
   );

@@ -1,7 +1,7 @@
+import { CircleCheck, Kanban, Users, type LucideIcon } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Card } from "../components/ui/Card";
 import { EmptyState } from "../components/ui/EmptyState";
-import { MetricCard } from "../components/ui/MetricCard";
 import { PageHeader } from "../components/ui/PageHeader";
 import { Spinner } from "../components/ui/Spinner";
 import { StatusBadge } from "../components/ui/StatusBadge";
@@ -18,6 +18,26 @@ import {
 } from "../lib/constants/status";
 import { formatCurrency, formatDate } from "../lib/utils/format";
 import { Client, Opportunity, Task } from "../types/domain";
+
+type DashboardMetric = {
+  label: string;
+  value: string;
+  hint: string;
+  icon: LucideIcon;
+};
+
+const DashboardMetricCard = ({ label, value, hint, icon: Icon }: DashboardMetric) => {
+  return (
+    <Card className="!rounded-xl !border-zinc-200/80 !bg-white !p-5 !shadow-sm !backdrop-blur-none">
+      <div className="flex items-center gap-2 text-sm font-medium text-zinc-500">
+        <Icon className="h-4 w-4 text-zinc-400" strokeWidth={1.9} />
+        <span>{label}</span>
+      </div>
+      <p className="mt-4 text-2xl font-bold text-zinc-900">{value}</p>
+      <p className="mt-2 text-sm text-zinc-500">{hint}</p>
+    </Card>
+  );
+};
 
 export const DashboardPage = () => {
   const [clients, setClients] = useState<Client[]>([]);
@@ -51,7 +71,7 @@ export const DashboardPage = () => {
     loadDashboard();
   }, []);
 
-  const metrics = useMemo(() => {
+  const metrics = useMemo<DashboardMetric[]>(() => {
     const pipelineValue = opportunities.reduce((total, item) => total + Number(item.estimatedValue), 0);
     const openTasks = tasks.filter((task) => task.status !== "DONE").length;
     const activeClients = clients.filter((client) => client.status === "ACTIVE").length;
@@ -60,17 +80,20 @@ export const DashboardPage = () => {
       {
         label: "Pipeline actual",
         value: formatCurrency(pipelineValue),
-        hint: "Desde oportunidades recientes"
+        hint: "Desde oportunidades recientes",
+        icon: Kanban
       },
       {
         label: "Clientes activos",
         value: String(activeClients),
-        hint: "Base comercial viva"
+        hint: "Base comercial viva",
+        icon: Users
       },
       {
         label: "Tareas abiertas",
         value: String(openTasks),
-        hint: "Seguimiento pendiente"
+        hint: "Seguimiento pendiente",
+        icon: CircleCheck
       }
     ];
   }, [clients, opportunities, tasks]);
@@ -91,9 +114,9 @@ export const DashboardPage = () => {
         description="Un dashboard ligero para mostrar pipeline, foco operativo y calidad de base comercial sin ruido de interfaz."
       />
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {metrics.map((item) => (
-          <MetricCard key={item.label} label={item.label} value={item.value} hint={item.hint} tone="dark" />
+          <DashboardMetricCard key={item.label} {...item} />
         ))}
       </div>
 
