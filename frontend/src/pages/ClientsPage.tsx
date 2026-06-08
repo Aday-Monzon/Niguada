@@ -179,7 +179,7 @@ export const ClientsPage = () => {
 
       <div className="grid gap-4 md:grid-cols-3">
         {metrics.map((metric) => (
-          <MetricCard key={metric.label} {...metric} />
+          <MetricCard key={metric.label} {...metric} className="px-9 py-7" />
         ))}
       </div>
 
