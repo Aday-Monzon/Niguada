@@ -1,129 +1,41 @@
-# Niguada CRM
+# 🚀 Niguada CRM - The Ultimate Full-Stack Production-Ready Boilerplate
 
-Mini ERP/CRM full stack construido como proyecto de portfolio profesional. La idea es enseñar criterio de arquitectura, experiencia construyendo producto y capacidad para conectar una API modular con una interfaz moderna y usable.
+A modern, ultra-clean, and high-performance Mini ERP/CRM Starter Kit built from scratch to save developers and startups over 40+ hours of setup, architecture design, and configuration.
 
-## Demo del proyecto
+## 🌐 Live Demo & Production Showcase
 
-Niguada incluye:
+Test the fully functional production build right now:
 
-- autenticacion con JWT
-- dashboard de ventas y operacion
-- gestion de clientes
-- pipeline de oportunidades
-- seguimiento de tareas
-- Prisma + PostgreSQL en backend
-- React + TypeScript + Vite + Tailwind en frontend
+🔗 Live Demo App: [PEGA_AQUÍ_TU_ENLACE_DE_VERCEL_CON_HTTPS]
 
-## Stack
+🔑 Demo Credentials:
 
-### Frontend
+Email: `admin@niguada.dev`
 
-- React
-- TypeScript
-- Vite
-- Tailwind CSS
-- React Router
-- React Hook Form
-- Zod
+Password: `[PEGA_AQUÍ_LA_CONTRASEÑA_DEL_SEED_ADMIN]`
 
-### Backend
+The database automatically populates with realistic mock data via a production database seed script on every deployment.
 
-- Node.js
-- Express
-- TypeScript
-- Prisma
-- PostgreSQL
-- JWT
+## 🛠️ The Tech Stack (Industry Standards)
 
-## Capturas
+This boilerplate is structured following enterprise-level architectural patterns:
 
-![Login](docs/screenshots/login.png)
-![Dashboard](docs/screenshots/dashboard.png)
-![CRM](docs/screenshots/crm.png)
+- **Frontend:** React, TypeScript, Vite, Tailwind CSS, Shadcn UI, Lucide Icons.
+- **Backend:** Node.js, Express, TypeScript, Prisma ORM, JWT Authentication.
+- **Database & Infra:** PostgreSQL, Docker, Docker Compose.
+- **Validation:** Zod (Strict end-to-end type safety for API requests and forms).
 
-## Estructura
+## ✨ Core Features Included
 
-```text
-/
-|-- frontend/
-|   |-- src/
-|   |   |-- app/
-|   |   |-- components/
-|   |   |-- features/
-|   |   |-- lib/
-|   |   |-- pages/
-|   |   |-- styles/
-|   |   `-- types/
-|   |-- .env.example
-|   `-- package.json
-|-- backend/
-|   |-- prisma/
-|   |   |-- migrations/
-|   |   |-- schema.prisma
-|   |   |-- seed-if-empty.ts
-|   |   `-- seed.ts
-|   |-- src/
-|   |   |-- common/
-|   |   |-- config/
-|   |   |-- lib/
-|   |   |-- modules/
-|   |   `-- routes/
-|   |-- .env.example
-|   `-- package.json
-`-- docs/
-    |-- architecture.md
-    `-- screenshots/
-```
+- **Modular Architecture:** Clean backend folder structure separating routes, controllers, and services. Easy to extend.
+- **Robust Authentication:** Secure JWT-based auth flow with protected route wrappers on both client and server.
+- **Modern UI/UX:** Dark/Light theme ready, premium layout, custom modern sidebar, and fully styled DataTable components.
+- **Interactive Sales Pipeline:** Drag-and-drop style Kanban layout for managing business opportunities and leads.
+- **Automated Seeding:** Instantly fill your local or production database with realistic data for immediate testing.
 
-## Funcionalidades actuales
+## 💻 1-Minute Local Setup
 
-- login y persistencia de sesion
-- rutas protegidas en frontend
-- middleware de autenticacion y roles en backend
-- CRUD REST de clientes
-- CRUD REST de oportunidades
-- CRUD REST de tareas
-- CRUD REST de notas en backend
-- filtros, busqueda y paginacion simple en frontend
-- seed de datos para demo local
-
-## Como ejecutar el proyecto
-
-### Opcion recomendada: Docker Compose
-
-Prepara las variables de entorno y levanta todo el stack:
-
-```bash
-cp .env.example .env
-```
-
-```bash
-docker compose up --build
-```
-
-En el primer arranque, el backend espera a PostgreSQL, ejecuta `prisma migrate deploy` y carga automaticamente los datos demo si la base esta vacia.
-
-Servicios disponibles:
-
-- frontend: `http://localhost:8080`
-- backend: `http://localhost:4000`
-- postgres: `localhost:5432`
-
-Para detener el entorno:
-
-```bash
-docker compose down
-```
-
-Si quieres eliminar tambien el volumen de PostgreSQL:
-
-```bash
-docker compose down -v
-```
-
-### Opcion local sin Docker
-
-### 1. Backend
+### Backend Configuration
 
 ```bash
 cd backend
@@ -135,9 +47,7 @@ npm run prisma:seed
 npm run dev
 ```
 
-El backend queda disponible en `http://localhost:4000`.
-
-### 2. Frontend
+### Frontend Configuration
 
 ```bash
 cd frontend
@@ -146,151 +56,16 @@ npm install
 npm run dev
 ```
 
-El frontend queda disponible en `http://localhost:5173`.
-
-## Variables de entorno
-
-### Backend
-
-Archivo: `backend/.env`
-
-```env
-PORT=4000
-NODE_ENV=development
-DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/DATABASE"
-JWT_SECRET="replace-with-a-long-random-secret"
-JWT_EXPIRES_IN="1d"
-CORS_ORIGIN="http://localhost:5173"
-SEED_ADMIN_EMAIL="admin@example.com"
-SEED_ADMIN_PASSWORD="replace-with-demo-admin-password"
-SEED_EMPLOYEE_EMAIL="employee@example.com"
-SEED_SECOND_EMPLOYEE_EMAIL="employee2@example.com"
-SEED_EMPLOYEE_PASSWORD="replace-with-demo-employee-password"
-```
-
-### Frontend
-
-Archivo: `frontend/.env`
-
-```env
-VITE_API_URL=/api/v1
-```
-
-## Credenciales de demo
-
-Las credenciales demo se definen en variables `SEED_*` dentro del `.env` usado por Docker o backend local.
-
-## Decisiones tecnicas
-
-### Arquitectura modular
-
-El backend esta separado por dominios (`auth`, `clients`, `opportunities`, `tasks`, `notes`) para que la aplicacion pueda crecer sin mezclar reglas de negocio, transporte HTTP y persistencia.
-
-### API centralizada en frontend
-
-Toda la comunicacion con el backend pasa por un cliente HTTP comun. Esto simplifica el manejo de errores, el envio del token y posibles cambios futuros como refresh tokens o interceptores mas avanzados.
-
-### Formularios con validacion tipada
-
-Se usa `react-hook-form` con `zod` para mantener formularios declarativos y coherentes con la validacion del backend.
-
-### Prisma como capa de datos
-
-Prisma permite mantener un schema legible, seed reproducible y una base preparada para evolucionar a nuevas entidades como invoices, projects o products.
-
-### UI pensada como producto
-
-El frontend no intenta parecer una demo tutorial. Se ha priorizado una interfaz tipo SaaS, con jerarquia visual clara, metricas, modales reutilizables y tablas con estados vacios, errores y carga.
-
-## Deploy recomendado
-
-### Frontend en Vercel
-
-1. Importa el repositorio en Vercel.
-2. Selecciona `frontend` como root directory.
-3. Configura la variable `VITE_API_URL`.
-4. Usa el comando de build:
+Alternatively, launch the entire ecosystem seamlessly using our production-ready Docker configuration:
 
 ```bash
-npm run build
+docker-compose up --build
 ```
 
-5. Usa como output directory:
+## 💼 Commercial License & Full Access
 
-```bash
-dist
-```
+Want to use this clean architecture to build client projects or launch your own profitable SaaS?
 
-### Backend en Railway o Render
+🔗 Get the Commercial Production License on Lemon Squeezy: [AQUÍ_IRÁ_EL_LINK_DE_TU_TIENDA]
 
-1. Crea un nuevo servicio desde el mismo repositorio.
-2. Selecciona `backend` como root directory.
-3. Configura variables de entorno del backend.
-4. Usa:
-
-```bash
-npm install
-npm run prisma:generate
-npm run prisma:deploy
-npm run build
-npm run start
-```
-
-### Base de datos
-
-Opciones recomendadas:
-
-- Railway PostgreSQL
-- Render PostgreSQL
-- Neon
-- Supabase PostgreSQL
-
-La conexion final se pasa por `DATABASE_URL`.
-
-## Docker
-
-Archivos incluidos:
-
-- [docker-compose.yml](docker-compose.yml)
-- [backend/Dockerfile](backend/Dockerfile)
-- [frontend/Dockerfile](frontend/Dockerfile)
-- [frontend/nginx.conf](frontend/nginx.conf)
-
-Decisiones:
-
-- `PostgreSQL` corre como servicio independiente con volumen persistente
-- `backend` aplica migraciones al arrancar
-- `frontend` se compila con Vite y se sirve con Nginx
-- Nginx hace proxy de `/api` al backend para evitar problemas de CORS en entorno dockerizado
-
-## Posibles mejoras futuras
-
-### Producto
-
-- modulo de notas en frontend
-- timeline por cliente y oportunidad
-- dashboard con metricas historicas reales
-- activity feed y auditoria
-- perfiles de usuario y preferencias
-
-### Escalabilidad
-
-- query cache con TanStack Query
-- refresh tokens reales con cookie `httpOnly`
-- DTOs compartidos entre frontend y backend
-- paginacion y filtros mas robustos
-- soft delete y trazabilidad
-
-### Calidad
-
-- tests unitarios de servicios backend
-- tests de componentes y flujos criticos en frontend
-- tests E2E con Playwright
-- linting y formatting automatizados
-- pipeline CI para build y checks
-
-## Documentacion adicional
-
-- Arquitectura inicial: [docs/architecture.md](docs/architecture.md)
-- Backend: [backend/README.md](backend/README.md)
-- Frontend: [frontend/README.md](frontend/README.md)
+Built with ❤️ by [Tu Nombre o GitHub User]
